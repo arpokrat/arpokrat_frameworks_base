@@ -351,5 +351,5 @@
         Intentionally left empty. The goal is to set a default for desktop
         devices without forcing it on other form factors.
     -->
-    <bool name="def_text_show_password"></bool>
+    <bool name="def_text_show_password">false</bool>
 </resources>
