@@ -344,4 +344,7 @@
 
     <!-- Caps minsum contrast from -1.0 (Material API) to 0.0 (Android Support)-->
     <bool name="config_increaseMinContrast">true</bool>
+
+    <bool name="def_text_show_password">false</bool>
+
 </resources>
