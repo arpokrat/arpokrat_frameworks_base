@@ -55,6 +55,8 @@ import android.os.SystemProperties;
 import android.os.Trace;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.provider.Settings;
+import android.util.Log;
 import android.util.Slog;
 import android.util.SparseArray;
 
@@ -174,6 +176,19 @@ public class BackupManagerService extends IBackupManager.Stub implements BackupM
      */
     private boolean mHasFirstUserUnlockedSinceBoot = false;
 
+    private final BroadcastReceiver mUserAddedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Intent.ACTION_USER_ADDED.equals(intent.getAction())) {
+                int userId = intent.getIntExtra(Intent.EXTRA_USER_HANDLE, UserHandle.USER_NULL);
+                Log.d(TAG, "new user added User ID : " + userId);
+                if (userId > 0) {
+                    mHandler.post(() -> setBackupServiceActive(userId, true));
+                }
+            }
+        }
+    };
+
     public BackupManagerService(Context context) {
         mContext = context;
         mGlobalDisable = isBackupDisabled();
@@ -193,6 +208,9 @@ public class BackupManagerService extends IBackupManager.Stub implements BackupM
             // This might happen on the first boot if BMS starts before the main user is created.
             Slog.d(TAG, "Main user does not exist yet");
         }
+
+        mContext.registerReceiver(
+                mUserAddedReceiver, new IntentFilter(Intent.ACTION_USER_ADDED));
     }
 
     @VisibleForTesting
