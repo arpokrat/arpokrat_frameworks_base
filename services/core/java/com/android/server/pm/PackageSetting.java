@@ -28,7 +28,9 @@ import android.annotation.Nullable;
 import android.annotation.UserIdInt;
 import android.content.ComponentName;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.GosPackageState;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManagerInternal;
 import android.content.pm.SharedLibraryInfo;
 import android.content.pm.SigningDetails;
 import android.content.pm.SigningInfo;
@@ -50,6 +52,7 @@ import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.pm.parsing.pkg.AndroidPackageInternal;
 import com.android.internal.util.CollectionUtils;
 import com.android.internal.util.DataClass;
+import com.android.server.LocalServices;
 import com.android.server.pm.parsing.pkg.AndroidPackageUtils;
 import com.android.server.pm.permission.LegacyPermissionDataProvider;
 import com.android.server.pm.permission.LegacyPermissionState;
@@ -63,6 +66,7 @@ import com.android.server.pm.pkg.PackageUserStateImpl;
 import com.android.server.pm.pkg.PackageUserStateInternal;
 import com.android.server.pm.pkg.SharedLibrary;
 import com.android.server.pm.pkg.SharedLibraryWrapper;
+import com.android.server.pm.pkg.SharedUserApi;
 import com.android.server.pm.pkg.SuspendParams;
 import com.android.server.utils.SnapshotCache;
 import com.android.server.utils.WatchedArraySet;
@@ -403,6 +407,11 @@ public class PackageSetting extends SettingBase implements PackageStateInternal 
         }
         onChanged();
         return this;
+    }
+
+    public void setGosPackageState(@UserIdInt int userId, @NonNull GosPackageState state) {
+        modifyUserState(userId).setGosPackageState(state);
+        onChanged();
     }
 
     public PackageSetting setForceQueryableOverride(boolean forceQueryableOverride) {
@@ -909,6 +918,16 @@ public class PackageSetting extends SettingBase implements PackageStateInternal 
 
     void setInstalled(boolean inst, int userId) {
         modifyUserState(userId).setInstalled(inst);
+        if (inst) {
+            int sharedUserAppId = getSharedUserAppId();
+            if (sharedUserAppId > 0) {
+                var pmi = LocalServices.getService(PackageManagerInternal.class);
+                SharedUserApi sharedUser = pmi.getSharedUserApi(sharedUserAppId);
+                if (sharedUser != null) {
+                    sharedUser.syncGosPackageState();
+                }
+            }
+        }
         onChanged();
     }
 
@@ -1093,6 +1112,7 @@ public class PackageSetting extends SettingBase implements PackageStateInternal 
 
     void setUserState(int userId, long ceDataInode, long deDataInode, int enabled,
                       boolean installed, boolean stopped, boolean notLaunched, boolean hidden,
+                      GosPackageState gosPackageState,
                       int distractionFlags, ArrayMap<UserPackage, SuspendParams> suspendParams,
                       boolean instantApp, boolean virtualPreload, String lastDisableAppCaller,
                       ArraySet<String> enabledComponents, ArraySet<String> disabledComponents,
@@ -1108,6 +1128,7 @@ public class PackageSetting extends SettingBase implements PackageStateInternal 
                 .setStopped(stopped)
                 .setNotLaunched(notLaunched)
                 .setHidden(hidden)
+                .setGosPackageState(gosPackageState)
                 .setDistractionFlags(distractionFlags)
                 .setLastDisableAppCaller(lastDisableAppCaller)
                 .setEnabledComponents(enabledComponents)
@@ -1127,7 +1148,7 @@ public class PackageSetting extends SettingBase implements PackageStateInternal 
     void setUserState(int userId, PackageUserStateInternal otherState) {
         setUserState(userId, otherState.getCeDataInode(), otherState.getDeDataInode(),
                 otherState.getEnabledState(), otherState.isInstalled(), otherState.isStopped(),
-                otherState.isNotLaunched(), otherState.isHidden(), otherState.getDistractionFlags(),
+                otherState.isNotLaunched(), otherState.isHidden(), otherState.getGosPackageState(), otherState.getDistractionFlags(),
                 otherState.getSuspendParams() == null
                         ? null : otherState.getSuspendParams().untrackedStorage(),
                 otherState.isInstantApp(), otherState.isVirtualPreload(),
