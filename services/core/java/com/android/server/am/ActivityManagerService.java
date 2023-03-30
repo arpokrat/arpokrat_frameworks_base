@@ -19454,4 +19454,10 @@ public class ActivityManagerService extends IActivityManager.Stub
     private IBackupManager getBackupManager() {
         return IBackupManager.Stub.asInterface(ServiceManager.getService(Context.BACKUP_SERVICE));
     }
+
+    @Override
+    public String[] getSystemIdmapPaths() {
+        // see comment in AssetManager#createSystemAssetsInZygoteLocked()
+        return android.content.res.AssetManager.systemIdmapPaths_;
+    }
 }
