@@ -7292,4 +7292,9 @@
          features. Examples include the search functionality or the app
          predictor. -->
     <string name="config_systemVendorIntelligence" translatable="false"></string>
+
+    <bool name="config_Google_apps_can_have_special_access_to_accelerators">false</bool>
+    <java-symbol type="bool" name="config_Google_apps_can_have_special_access_to_accelerators" />
+    <bool name="config_GoogleCamera_needs_seinfo_for_access_to_accelerators">false</bool>
+    <java-symbol type="bool" name="config_GoogleCamera_needs_seinfo_for_access_to_accelerators" />
 </resources>
