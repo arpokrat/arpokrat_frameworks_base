@@ -182,6 +182,10 @@ public class SelectorWithWidgetPreference extends CheckBoxPreference {
 
         TextView title = (TextView) holder.findViewById(android.R.id.title);
         title.setMaxLines(mTitleMaxLines);
+
+        if (mExtraWidgetDrawableRes != 0) {
+            mExtraWidget.setImageResource(mExtraWidgetDrawableRes);
+        }
     }
 
     /**
@@ -280,5 +284,11 @@ public class SelectorWithWidgetPreference extends CheckBoxPreference {
             mTitleMaxLines = titleMaxLines;
             notifyChanged();
         }
+    }
+
+    private int mExtraWidgetDrawableRes;
+
+    public void setExtraWidgetDrawableResource(int resId) {
+        mExtraWidgetDrawableRes = resId;
     }
 }
