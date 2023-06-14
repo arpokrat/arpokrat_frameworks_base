@@ -432,7 +432,8 @@ public class LockPatternUtilsTest {
     @EnableFlags(Flags.FLAG_HIDE_LAST_CHAR_WITH_PHYSICAL_INPUT)
     public void isPinEnhancedPrivacyEnabled_noDevicesAttached() throws RemoteException {
         InputManagerGlobal.TestSession session = configureExternalHardwareTest(new InputDevice[0]);
-        assertFalse(mLockPatternUtils.isPinEnhancedPrivacyEnabled(USER_ID));
+        // GrapheneOS change: PIN enhanced privacy defaults to true, regardless of hw keyboard
+        assertTrue(mLockPatternUtils.isPinEnhancedPrivacyEnabled(USER_ID));
         session.close();
     }
 
@@ -443,7 +444,8 @@ public class LockPatternUtilsTest {
         builder.setEnabled(false);
         InputManagerGlobal.TestSession session =
                 configureExternalHardwareTest(new InputDevice[]{builder.build()});
-        assertFalse(mLockPatternUtils.isPinEnhancedPrivacyEnabled(USER_ID));
+        // GrapheneOS change: PIN enhanced privacy defaults to true, regardless of hw keyboard
+        assertTrue(mLockPatternUtils.isPinEnhancedPrivacyEnabled(USER_ID));
         session.close();
     }
 
@@ -454,7 +456,8 @@ public class LockPatternUtilsTest {
         builder.setEnabled(true).setSources(InputDevice.SOURCE_TOUCHSCREEN);
         InputManagerGlobal.TestSession session =
                 configureExternalHardwareTest(new InputDevice[]{builder.build()});
-        assertFalse(mLockPatternUtils.isPinEnhancedPrivacyEnabled(USER_ID));
+        // GrapheneOS change: PIN enhanced privacy defaults to true, regardless of hw keyboard
+        assertTrue(mLockPatternUtils.isPinEnhancedPrivacyEnabled(USER_ID));
         session.close();
     }
 
@@ -468,7 +471,8 @@ public class LockPatternUtilsTest {
                 .setKeyboardType(InputDevice.KEYBOARD_TYPE_NON_ALPHABETIC);
         InputManagerGlobal.TestSession session =
                 configureExternalHardwareTest(new InputDevice[]{builder.build()});
-        assertFalse(mLockPatternUtils.isPinEnhancedPrivacyEnabled(USER_ID));
+        // GrapheneOS change: PIN enhanced privacy defaults to true, regardless of hw keyboard
+        assertTrue(mLockPatternUtils.isPinEnhancedPrivacyEnabled(USER_ID));
         session.close();
     }
 
@@ -482,7 +486,8 @@ public class LockPatternUtilsTest {
                 .setKeyboardType(InputDevice.KEYBOARD_TYPE_ALPHABETIC);
         InputManagerGlobal.TestSession session =
                 configureExternalHardwareTest(new InputDevice[]{builder.build()});
-        assertFalse(mLockPatternUtils.isPinEnhancedPrivacyEnabled(USER_ID));
+        // GrapheneOS change: PIN enhanced privacy defaults to true, regardless of hw keyboard
+        assertTrue(mLockPatternUtils.isPinEnhancedPrivacyEnabled(USER_ID));
         session.close();
     }
 
