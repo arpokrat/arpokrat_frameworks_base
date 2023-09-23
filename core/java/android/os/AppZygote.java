@@ -79,11 +79,11 @@ public class AppZygote {
      * Returns the zygote process associated with this app zygote.
      * Creates the process if it's not already running.
      */
-    public ChildZygoteProcess getProcess() {
+    public ChildZygoteProcess getProcess(@Nullable String flatExtraArgs) {
         synchronized (mLock) {
             if (mZygote != null) return mZygote;
 
-            connectToZygoteIfNeededLocked();
+            connectToZygoteIfNeededLocked(flatExtraArgs);
             return mZygote;
         }
     }
@@ -190,7 +190,7 @@ public class AppZygote {
     }
 
     @GuardedBy("mLock")
-    private void connectToZygoteIfNeededLocked() {
+    private void connectToZygoteIfNeededLocked(@Nullable String flatExtraArgs) {
         String abi = mAppInfo.primaryCpuAbi != null ? mAppInfo.primaryCpuAbi :
                 Build.SUPPORTED_ABIS[0];
         try {
@@ -211,7 +211,8 @@ public class AppZygote {
                     abi, // acceptedAbiList
                     VMRuntime.getInstructionSet(abi), // instructionSet
                     mZygoteUidGidMin,
-                    mZygoteUidGidMax);
+                    mZygoteUidGidMax,
+                    flatExtraArgs);
 
             ZygoteProcess.waitForConnectionToZygote(mZygote.getPrimarySocketAddress());
             // preload application code in the zygote
