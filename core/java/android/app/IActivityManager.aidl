@@ -1051,6 +1051,9 @@ interface IActivityManager {
 
     String[] getSystemIdmapPaths();
 
+    oneway void showDynCodeLoadingNotification(int type, String pkgName, @nullable String path,
+                                            in List<String> reportBody, String denialType);
+
     /**
      * Reports ART optimization info.
      */
