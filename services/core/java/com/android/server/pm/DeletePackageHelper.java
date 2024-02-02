@@ -927,6 +927,11 @@ final class DeletePackageHelper {
             return true;
         }
         final int callingUserId = UserHandle.getUserId(callingUid);
+        // Allow package uninstaller to silently uninstall.
+        if (mPm.mRequiredUninstallerPackage != null && callingUid == snapshot
+                .getPackageUid(mPm.mRequiredUninstallerPackage, 0, callingUserId)) {
+            return true;
+        }
 
         // If the caller installed the pkgName, then allow it to silently uninstall.
         for (int user : targetUserIds) {
@@ -946,12 +951,6 @@ final class DeletePackageHelper {
             if (callingUid == snapshot.getPackageUid(verifierPackageName, 0, callingUserId)) {
                 return true;
             }
-        }
-
-        // Allow package uninstaller to silently uninstall.
-        if (mPm.mRequiredUninstallerPackage != null && callingUid == snapshot
-                .getPackageUid(mPm.mRequiredUninstallerPackage, 0, callingUserId)) {
-            return true;
         }
 
         // Allow storage manager to silently uninstall.
