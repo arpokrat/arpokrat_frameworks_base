@@ -162,6 +162,7 @@ internal fun <T : AppRecord> TogglePermissionAppListModel<T>.TogglePermissionApp
                     switchifBlockedByAdminOverrideCheckedValueTo,
                 restrictionsProviderFactory = restrictionsProviderFactory,
             )
+            extContent(record, this@AppInfoPage)
         }
     }
 }
