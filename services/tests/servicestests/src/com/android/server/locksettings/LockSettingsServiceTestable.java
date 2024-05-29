@@ -148,6 +148,13 @@ public class LockSettingsServiceTestable extends LockSettingsService {
         public boolean isHeadlessSystemUserMode() {
             return mIsHeadlessSystemUserMode;
         }
+
+        @Override
+        public DuressPasswordHelper getDuressPasswordHelper(LockSettingsService lockSettingsService,
+                LockSettingsStorage lockSettingsStorage,
+                SyntheticPasswordManager syntheticPasswordManager) {
+            return mock(DuressPasswordHelper.class);
+        }
     }
 
     protected LockSettingsServiceTestable(
