@@ -75,7 +75,7 @@ class GmsCoreHooks extends PackageHooks {
         @Override
         public List<ParsedUsesPermissionImpl> addUsesPermissions() {
             var res = super.addUsesPermissions();
-            var l = createUsesPerms(Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Manifest.permission.READ_PHONE_NUMBERS);
+            var l = createUsesPerms(Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.REQUEST_INSTALL_PACKAGES);
             res.addAll(l);
             return res;
         }
