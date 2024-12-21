@@ -2177,7 +2177,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     // TODO: MODIFIED DURING GRAPHENE PORT AND NEEDS REVIEW. Upstream's implementation might be better. Look to see if
     // we should switch to it.
     private boolean isCredentialShareableWithParent(int userId) {
-        return mLockPatternUtils.isCredentialSharableWithParent(userId, DoNotThrow);
+        return mLockPatternUtils.isCredentialShareableWithParent(userId, DoNotThrow);
     }
 
     /** Register the given WeakEscrowTokenRemovedListener. */
