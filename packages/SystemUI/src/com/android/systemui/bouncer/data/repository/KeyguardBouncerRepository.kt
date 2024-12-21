@@ -91,6 +91,8 @@ interface KeyguardBouncerRepository {
     /** Last shown security mode of the primary bouncer (ie: pin/pattern/password/SIM) */
     val lastShownSecurityMode: StateFlow<KeyguardSecurityModel.SecurityMode>
 
+    val bouncerRequestedWhenAlreadyShowing: StateFlow<Boolean>
+
     /** Action that should be run right after the bouncer is dismissed. */
     var bouncerDismissActionModel: BouncerDismissActionModel?
 
@@ -125,6 +127,8 @@ interface KeyguardBouncerRepository {
     fun setAlternateVisible(isVisible: Boolean)
 
     fun setLastShownSecurityMode(securityMode: KeyguardSecurityModel.SecurityMode)
+
+    fun setBouncerRequestedWhenAlreadyShowing(bouncerRequestedWhenAlreadyShowing: Boolean)
 }
 
 @SysUISingleton
@@ -196,6 +200,10 @@ constructor(
     override val alternateBouncerVisible = _alternateBouncerVisible.asStateFlow()
     override var lastAlternateBouncerVisibleTime: Long = NOT_VISIBLE
 
+    private val _bouncerRequestedWhenAlreadyShowing = MutableStateFlow(false)
+    override val bouncerRequestedWhenAlreadyShowing =
+        _bouncerRequestedWhenAlreadyShowing.asStateFlow()
+
     init {
         setUpLogging()
     }
@@ -263,6 +271,10 @@ constructor(
 
     override fun setLastShownSecurityMode(securityMode: KeyguardSecurityModel.SecurityMode) {
         _lastShownSecurityMode.value = securityMode
+    }
+
+    override fun setBouncerRequestedWhenAlreadyShowing(bouncerRequestedWhenAlreadyShowing: Boolean) {
+        _bouncerRequestedWhenAlreadyShowing.value = bouncerRequestedWhenAlreadyShowing
     }
 
     /** Sets up logs for state flows. */
