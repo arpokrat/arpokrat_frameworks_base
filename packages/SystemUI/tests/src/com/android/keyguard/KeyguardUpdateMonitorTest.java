@@ -128,6 +128,7 @@ import com.android.internal.util.LatencyTracker;
 import com.android.internal.widget.ILockSettings;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.keyguard.KeyguardUpdateMonitor.BiometricAuthenticated;
+import com.android.keyguard.KeyguardUpdateMonitorCallback.SecondFactorStatus;
 import com.android.keyguard.logging.KeyguardUpdateMonitorLogger;
 import com.android.keyguard.logging.SimLogger;
 import com.android.settingslib.fuelgauge.BatteryStatus;
@@ -391,6 +392,8 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         setupBiometrics(mKeyguardUpdateMonitor);
         mKeyguardUpdateMonitor.setFaceAuthInteractor(mFaceAuthInteractor);
         verify(mFaceAuthInteractor).registerListener(mFaceAuthenticationListener.capture());
+
+        when(mLockPatternUtils.isBiometricSecondFactorEnabled(anyInt())).thenReturn(false);
     }
 
     private void setupBiometrics(KeyguardUpdateMonitor keyguardUpdateMonitor)
@@ -425,8 +428,6 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         verify(mFingerprintManager).addAuthenticatorsRegisteredCallback(
                 fingerprintCaptor.capture());
         mFingerprintAuthenticatorsRegisteredCallback = fingerprintCaptor.getValue();
-        mFingerprintAuthenticatorsRegisteredCallback
-                .onAllAuthenticatorsRegistered(mFingerprintSensorProperties);
     }
 
     private void setupFingerprintAuth(boolean isClass3) throws RemoteException {
@@ -881,7 +882,7 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         verify(mTestCallback).onBiometricDetected(
                 eq(0), eq(BiometricSourceType.FINGERPRINT), eq(true));
         verify(mTestCallback, never()).onBiometricAuthenticated(
-                anyInt(), any(), anyBoolean());
+                anyInt(), any(), anyBoolean(), any(SecondFactorStatus.class));
     }
 
     @Test
@@ -898,7 +899,7 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         verify(mTestCallback).onBiometricError(
                 eq(10), eq(""), eq(BiometricSourceType.FINGERPRINT));
         verify(mTestCallback, never()).onBiometricAuthenticated(
-                anyInt(), any(), anyBoolean());
+                anyInt(), any(), anyBoolean(), any(SecondFactorStatus.class));
     }
 
     @Test
@@ -911,7 +912,7 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         verify(mTestCallback).onBiometricDetected(
                 eq(0), eq(BiometricSourceType.FACE), eq(false));
         verify(mTestCallback, never()).onBiometricAuthenticated(
-                anyInt(), any(), anyBoolean());
+                anyInt(), any(), anyBoolean(), any(SecondFactorStatus.class));
     }
 
     @Test
@@ -1160,6 +1161,18 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         int user = mSelectedUserInteractor.getSelectedUserId();
         mKeyguardUpdateMonitor.onFingerprintAuthenticated(user, true /* isClass3Biometric */);
         assertThat(mKeyguardUpdateMonitor.getUserCanSkipBouncer(user)).isTrue();
+    }
+
+    @Test
+    public void testGetUserCanSkipBouncer_whenFingerprintAndSecondFactorEnabled_returnsFalse() {
+        int user = mSelectedUserInteractor.getSelectedUserId();
+        mKeyguardUpdateMonitor.onFingerprintAuthenticated(user, true /* isClass3Biometric */);
+        when(mLockPatternUtils.isBiometricSecondFactorEnabled(user)).thenReturn(true);
+
+        assertThat(mKeyguardUpdateMonitor.getUserHasTrust(user)).isFalse();
+        assertThat(mKeyguardUpdateMonitor.isUnlockingWithBiometricAllowedSafe(true)).isTrue();
+
+        assertThat(mKeyguardUpdateMonitor.getUserCanSkipBouncer(user)).isFalse();
     }
 
     @Test
@@ -2389,6 +2402,12 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         Intent intent = new Intent(TelephonyIntents.ACTION_SIM_STATE_CHANGED);
         intent.putExtra(SubscriptionManager.EXTRA_SLOT_INDEX, 0);
         return intent;
+    }
+
+    @Test
+    public void testClearFingerprintRecognized_success_clearsPendingAuthTokens() {
+        mKeyguardUpdateMonitor.clearFingerprintRecognized();
+        verify(mFingerprintManager).clearPendingAuthTokens();
     }
 
     private void verifyFingerprintAuthenticateNeverCalled() {
