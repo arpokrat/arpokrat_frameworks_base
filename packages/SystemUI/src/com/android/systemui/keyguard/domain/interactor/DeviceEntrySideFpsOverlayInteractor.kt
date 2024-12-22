@@ -80,7 +80,7 @@ constructor(
                 isBouncerActive() &&
                     isSideFpsIndicatorOnPrimaryBouncerEnabled &&
                     keyguardUpdateMonitor.isFingerprintDetectionRunning &&
-                    keyguardUpdateMonitor.isUnlockingWithFingerprintAllowed
+                    keyguardUpdateMonitor.isUnlockingWithFingerprintAllowedSafe
             }
             .onEach { Log.d(TAG, "showIndicatorForPrimaryBouncer updated: $it") }
 
