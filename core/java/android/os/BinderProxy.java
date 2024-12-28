@@ -514,6 +514,14 @@ public final class BinderProxy implements IBinder {
     @Override
     public native @Nullable IBinder getExtension() throws RemoteException;
 
+    private static final String LOG_TAG_TXN = "BinderProxyTxn";
+    private static boolean LOG_TXNS = Log.isLoggable(LOG_TAG_TXN, Log.VERBOSE);
+
+    /** @hide */
+    public static void onZygotePostForkChild() {
+        LOG_TXNS = Log.isLoggable(LOG_TAG_TXN, Log.VERBOSE);
+    }
+
     /**
      * Perform a binder transaction on a proxy.
      *
@@ -532,6 +540,10 @@ public final class BinderProxy implements IBinder {
      * @throws RemoteException
      */
     public boolean transact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
+        if (LOG_TXNS) {
+            Log.v(LOG_TAG_TXN, getInterfaceDescriptor() + ", code " + code, new Throwable());
+        }
+
         Binder.checkParcel(this, code, data, "Unreasonably large binder buffer");
 
         boolean warnOnBlocking = mWarnOnBlocking; // Cache it to reduce volatile access.
@@ -707,6 +719,10 @@ public final class BinderProxy implements IBinder {
      * @throws RemoteException
      */
     public void dump(FileDescriptor fd, String[] args) throws RemoteException {
+        if (LOG_TXNS) {
+            Log.v(LOG_TAG_TXN, "dump: " + getInterfaceDescriptor() + ", args " + Arrays.toString(args), new Throwable());
+        }
+
         Parcel data = Parcel.obtain();
         Parcel reply = Parcel.obtain();
         data.writeFileDescriptor(fd);
@@ -728,6 +744,10 @@ public final class BinderProxy implements IBinder {
      * @throws RemoteException
      */
     public void dumpAsync(FileDescriptor fd, String[] args) throws RemoteException {
+        if (LOG_TXNS) {
+            Log.v(LOG_TAG_TXN, "dumpAsync: " + getInterfaceDescriptor() + ", args " + Arrays.toString(args), new Throwable());
+        }
+
         Parcel data = Parcel.obtain();
         Parcel reply = Parcel.obtain();
         data.writeFileDescriptor(fd);
