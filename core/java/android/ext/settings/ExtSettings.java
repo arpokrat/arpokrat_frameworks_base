@@ -93,6 +93,12 @@ public class ExtSettings {
     public static final BoolSetting SHOW_SYSTEM_PROCESS_CRASH_NOTIFICATIONS = new BoolSetting(
             Setting.Scope.GLOBAL, Settings.Global.SHOW_SYSTEM_PROCESS_CRASH_NOTIFICATIONS, false);
 
+    public static final BoolSetting USER_DISABLE_PATCH_LEVEL_EXPIRY_WARNING = new BoolSetting(
+            Setting.Scope.GLOBAL, Settings.Global.PATCH_LEVEL_WARNING_DISABLED, false);
+
+    public static final BoolSysProperty DEVICE_DISABLED_PATCH_LEVEL_EXPIRY_WARNING = new BoolSysProperty(
+            "ro.disable_patch_level_expiry_warning", false);
+
     private ExtSettings() {}
 
     public static Function<Context, Boolean> defaultBool(@BoolRes int res) {

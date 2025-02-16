@@ -19,6 +19,7 @@ package com.android.systemui.keyguard.dagger;
 import android.app.IActivityTaskManager;
 import android.app.trust.TrustManager;
 import android.content.Context;
+import android.os.Handler;
 import android.os.PowerManager;
 
 import com.android.internal.jank.InteractionJankMonitor;
@@ -43,6 +44,7 @@ import com.android.systemui.classifier.FalsingCollector;
 import com.android.systemui.classifier.FalsingModule;
 import com.android.systemui.communal.ui.viewmodel.CommunalTransitionViewModel;
 import com.android.systemui.dagger.SysUISingleton;
+import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.dagger.qualifiers.Main;
 import com.android.systemui.dagger.qualifiers.UiBackground;
 import com.android.systemui.dreams.DreamOverlayStateController;
@@ -66,6 +68,7 @@ import com.android.systemui.keyguard.ui.view.AlternateBouncerWindowViewBinder;
 import com.android.systemui.keyguard.ui.viewmodel.KeyguardQuickAffordancesCombinedViewModelModule;
 import com.android.systemui.log.SessionTracker;
 import com.android.systemui.navigationbar.NavigationModeController;
+import com.android.systemui.patchlevelwarning.PatchLevelWarningDialogDelegate;
 import com.android.systemui.process.ProcessWrapper;
 import com.android.systemui.settings.UserTracker;
 import com.android.systemui.shade.ShadeController;
@@ -82,6 +85,7 @@ import com.android.systemui.user.domain.interactor.SelectedUserInteractor;
 import com.android.systemui.util.DeviceConfigProxy;
 import com.android.systemui.util.ThreadAssert;
 import com.android.systemui.util.kotlin.JavaAdapter;
+import com.android.systemui.util.settings.GlobalSettings;
 import com.android.systemui.util.settings.SecureSettings;
 import com.android.systemui.util.settings.SystemSettings;
 import com.android.systemui.util.time.SystemClock;
@@ -167,6 +171,7 @@ public interface KeyguardModule {
             FeatureFlags featureFlags,
             SecureSettings secureSettings,
             SystemSettings systemSettings,
+            GlobalSettings globalSettings,
             SystemClock systemClock,
             ProcessWrapper processWrapper,
             @Main CoroutineDispatcher mainDispatcher,
@@ -177,7 +182,9 @@ public interface KeyguardModule {
             SelectedUserInteractor selectedUserInteractor,
             KeyguardInteractor keyguardInteractor,
             KeyguardTransitionBootInteractor transitionBootInteractor,
-            WindowManagerOcclusionManager windowManagerOcclusionManager) {
+            WindowManagerOcclusionManager windowManagerOcclusionManager,
+            Lazy<PatchLevelWarningDialogDelegate> patchLevelWarningDialogDelegate,
+            @Background Handler bgHandler) {
         return new KeyguardViewMediator(
                 context,
                 uiEventLogger,
@@ -218,6 +225,7 @@ public interface KeyguardModule {
                 featureFlags,
                 secureSettings,
                 systemSettings,
+                globalSettings,
                 systemClock,
                 processWrapper,
                 mainDispatcher,
@@ -228,7 +236,9 @@ public interface KeyguardModule {
                 selectedUserInteractor,
                 keyguardInteractor,
                 transitionBootInteractor,
-                windowManagerOcclusionManager);
+                windowManagerOcclusionManager,
+                patchLevelWarningDialogDelegate,
+                bgHandler);
     }
 
     /** */
