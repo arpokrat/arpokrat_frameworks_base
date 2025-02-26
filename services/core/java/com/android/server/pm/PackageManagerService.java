@@ -8162,4 +8162,9 @@ public class PackageManagerService implements PackageSender, TestUtilityService 
         return UserHandle.isSameApp(uid, Process.SYSTEM_UID)
                 || UserHandle.isSameApp(uid, Process.PHONE_UID);
     }
+
+    @NonNull
+    public Context getContext() {
+        return mContext;
+    }
 }
