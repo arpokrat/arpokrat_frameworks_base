@@ -8315,4 +8315,9 @@ public class PackageManagerService implements PackageSender, TestUtilityService 
     public String getSystemAppUpdateOwnerPackageName(String packageName) {
         return mInjector.getSystemConfig().getSystemAppUpdateOwnerPackageName(packageName);
     }
+
+    @NonNull
+    public Context getContext() {
+        return mContext;
+    }
 }
