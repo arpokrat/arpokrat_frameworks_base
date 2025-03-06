@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
+import android.hardware.fingerprint.FingerprintManager;
 import android.security.KeyStoreAuthorization;
 
 import org.junit.Before;
@@ -47,7 +48,8 @@ public class BiometricAuthTokenStoreTest {
         // Return success.
         when(mKeyStoreAuthorization.addAuthToken(mAuthToken)).thenReturn(0);
 
-        assertTrue(mBiometricAuthTokenStore.addPendingAuthTokenToKeyStore(mUserId));
+        assertEquals(mBiometricAuthTokenStore.addPendingAuthTokenToKeyStore(mUserId),
+                FingerprintManager.SUCCESS);
 
         // Verify token removed from pending store.
         assertNull(mBiometricAuthTokenStore.getPendingAuthToken(mUserId));
@@ -60,7 +62,8 @@ public class BiometricAuthTokenStoreTest {
         // Return not success.
         when(mKeyStoreAuthorization.addAuthToken(mAuthToken)).thenReturn(1);
 
-        assertFalse(mBiometricAuthTokenStore.addPendingAuthTokenToKeyStore(mUserId));
+        assertEquals(mBiometricAuthTokenStore.addPendingAuthTokenToKeyStore(mUserId),
+                FingerprintManager.ERROR_UNABLE_TO_ADD_AUTH_TOKEN_TO_KEYSTORE);
 
         // Verify token removed from pending store.
         assertNull(mBiometricAuthTokenStore.getPendingAuthToken(mUserId));
@@ -71,7 +74,8 @@ public class BiometricAuthTokenStoreTest {
         // Verify no token in store.
         assertNull(mBiometricAuthTokenStore.getPendingAuthToken(mUserId));
 
-        assertFalse(mBiometricAuthTokenStore.addPendingAuthTokenToKeyStore(mUserId));
+        assertEquals(mBiometricAuthTokenStore.addPendingAuthTokenToKeyStore(mUserId),
+                FingerprintManager.ERROR_NO_PENDING_AUTH_TOKEN);
     }
 
     @Test
