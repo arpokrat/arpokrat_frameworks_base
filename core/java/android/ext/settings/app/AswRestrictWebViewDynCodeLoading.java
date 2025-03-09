@@ -8,6 +8,7 @@ import android.ext.settings.ExtSettings;
 import android.util.ArraySet;
 
 import com.android.internal.R;
+import com.android.internal.os.SELinuxFlags;
 
 /** @hide */
 public class AswRestrictWebViewDynCodeLoading extends AppSwitch {
@@ -38,6 +39,9 @@ public class AswRestrictWebViewDynCodeLoading extends AppSwitch {
                 // allow manual restriction
                 return null;
             } else {
+                if (SELinuxFlags.isSystemAppSepolicyWeakeningAllowed()) {
+                    return null;
+                }
                 return true;
             }
         }
