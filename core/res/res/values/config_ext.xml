@@ -30,6 +30,8 @@
         <item>app.grapheneos.pdfviewer</item>
         <!-- original-package -->
         <item>org.grapheneos.pdfviewer</item>
+        <!-- requires WebAssembly, which doesn't work in jitless mode -->
+        <item>com.android.virtualization.terminal</item>
     </string-array>
     <java-symbol type="array" name="system_pkgs_allowed_webview_dyn_code_loading_by_default" />
 
