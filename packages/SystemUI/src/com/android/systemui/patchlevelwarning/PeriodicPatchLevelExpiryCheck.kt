@@ -147,6 +147,13 @@ class PeriodicPatchLevelExpiryCheck : JobService() {
         }
 
         @JvmStatic
+        fun isJobScheduled(context: Context): Boolean {
+            val jobScheduler = context.getSystemService(JobScheduler::class.java)
+            return (jobScheduler.getPendingJob(JOB_ID) != null)
+                .also { scheduled -> Log.d(TAG, "isJobScheduled = $scheduled") }
+        }
+
+        @JvmStatic
         fun schedule(context: Context, isFromBoot: Boolean = false) {
             // SystemUI should only be from system user
             Log.d(TAG, "schedule from handle ${Process.myUserHandle()}, check interval $CHECK_INTERVAL, isFromBoot = $isFromBoot")

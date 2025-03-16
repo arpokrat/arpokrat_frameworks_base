@@ -1448,6 +1448,12 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
 
     private final Lazy<PatchLevelWarningDialogDelegate> mPatchLevelWarningDialogDelegate;
 
+    private boolean mIsPatchLevelWarningEnabled = true;
+
+    private long mPatchLevelJobScheduleKeyguardCheckLastTimeRun = 0;
+
+    private final long PATCH_LEVEL_JOB_SCHEDULE_KG_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 1 day
+
     private final Handler mBgHandler;
 
     private final GlobalSettings mGlobalSettings;
@@ -1694,7 +1700,8 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
         final ContentObserver observer = new ContentObserver(mBgHandler) {
             @Override
             public void onChange(boolean selfChange) {
-                if (PeriodicPatchLevelExpiryCheck.isPatchLevelWarningEnabled(mContext)) {
+                mIsPatchLevelWarningEnabled = PeriodicPatchLevelExpiryCheck.isPatchLevelWarningEnabled(mContext);
+                if (mIsPatchLevelWarningEnabled) {
                     PeriodicPatchLevelExpiryCheck.schedule(mContext, false);
                 } else {
                     mPatchLevelWarningDialogDelegate.get().markDontShowOnKeyguard();
@@ -2855,9 +2862,28 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
                     }
                     mLockPatternUtils.userPresent(currentUserId);
 
+                    // Ensure expiry warning job is always scheduled if warning enabled.
+                    // Job might be cancelled if the main user of device force stops SystemUI
+                    // (force stopping System UI will still cause System UI to function)
+                    if (mIsPatchLevelWarningEnabled) {
+                        // limit number of calls to JobScheduler.getPendingJob
+                        final long now = System.currentTimeMillis();
+                        final long timeBetween = now - mPatchLevelJobScheduleKeyguardCheckLastTimeRun;
+                        if (timeBetween > PATCH_LEVEL_JOB_SCHEDULE_KG_CHECK_INTERVAL) {
+                            mPatchLevelJobScheduleKeyguardCheckLastTimeRun = now;
+                            if (!PeriodicPatchLevelExpiryCheck.isJobScheduled(mContext)) {
+                                Log.w(TAG, "expected PeriodicPatchLevelExpiryCheck to be scheduled; rescheduling");
+                                PeriodicPatchLevelExpiryCheck.schedule(mContext, false);
+                            }
+                        }
+                    }
+
                     // Show expiry warning popup
                     // This *could* be done as a separate app, but an implicit broadcast receiver
                     // in a manifest wouldn't receive this broadcast.
+                    //
+                    // The periodic service marks the local variables in the delegate to avoid
+                    // having to do calculations on every keyguard unlock.
                     if (mPatchLevelWarningDialogDelegate.get().shouldShowOnThisKeyguardUnlock()) {
                         maybeShowPatchLevelExpiredDialog();
                     }
@@ -2876,8 +2902,9 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
         mPatchLevelWarningDialogDelegate.get().beforeDialogShown();
         // Although the periodic service will mark us to show the dialog on keyguard unlock,
         // need to sanity check this against the actual expiry state and setting
+        mIsPatchLevelWarningEnabled = PeriodicPatchLevelExpiryCheck.isPatchLevelWarningEnabled(mContext);
         if (PeriodicPatchLevelExpiryCheck.isPatchLevelExpiredOrUnparseable() &&
-                PeriodicPatchLevelExpiryCheck.isPatchLevelWarningEnabled(mContext)) {
+                mIsPatchLevelWarningEnabled) {
             // post to UI thread of keyguard because possibly still holding a lock here, and
             // should finish rest of keyguard animations
             mHandler.post(() -> mPatchLevelWarningDialogDelegate.get().createDialog().show());
