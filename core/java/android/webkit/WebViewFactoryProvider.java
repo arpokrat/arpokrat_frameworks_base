@@ -79,11 +79,33 @@ public interface WebViewFactoryProvider {
     }
 
     /**
+     * Use downstream class loading the WebView implementation.
+     * @hide
+     */
+    private static boolean shouldUseDownstreamWebViewFactoryClassName() {
+        if (Build.isDebuggable()) {
+            int downstreamUsageMode = android.os.SystemProperties.getInt(
+                    "webview_factory_provider_class_name_usage_mode", -1);
+            if (downstreamUsageMode == 0) {
+                return false;
+            } else if (downstreamUsageMode == 1) {
+                return true;
+            }
+        }
+        return true;
+    }
+
+    /**
+     *
      * Returns the name of the class that should be used when loading the
      * WebView implementation on this version of Android.
      * @hide
      */
     static @NonNull String getWebViewFactoryClassName() {
+        if (shouldUseDownstreamWebViewFactoryClassName()) {
+            return "com.android.webview.chromium.WebViewChromiumFactoryProviderForVanadium";
+        }
+
         if (Flags.useBEntryPoint()) {
             return "com.android.webview.chromium.WebViewChromiumFactoryProviderForB";
         } else {
