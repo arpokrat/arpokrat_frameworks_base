@@ -354,6 +354,7 @@ import android.app.admin.WifiSsidPolicy;
 import android.app.admin.flags.Flags;
 import android.app.backup.IBackupManager;
 import android.app.compat.CompatChanges;
+import android.app.compat.gms.GmsCompat;
 import android.app.role.OnRoleHoldersChangedListener;
 import android.app.role.RoleManager;
 import android.app.supervision.SupervisionManagerInternal;
@@ -397,6 +398,7 @@ import android.content.pm.parsing.FrameworkParsingPackageUtils;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.ext.PackageId;
 import android.graphics.Bitmap;
 import android.hardware.usb.UsbManager;
 import android.health.connect.HealthConnectManager;
@@ -589,7 +591,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
 
     private static final String ATTRIBUTION_TAG = "DevicePolicyManagerService";
 
-    static final boolean VERBOSE_LOG = false; // DO NOT SUBMIT WITH TRUE
+    static final boolean VERBOSE_LOG = true; // DO NOT SUBMIT WITH TRUE
 
     static final String DEVICE_POLICIES_XML = "device_policies.xml";
 
@@ -22114,6 +22116,13 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
 
             maybeInstallDevicePolicyManagementRoleHolderInUser(userInfo.id,
                     caller);
+
+            DevicePolicyGmsHooks hooks = new DevicePolicyGmsHooks(mIPackageManager, mContext, mInjector.getAppOpsManager());
+            int userId = userInfo.id;
+            int callingUserId = caller.getUserId();
+            mInjector.binderWithCleanCallingIdentity(() -> {
+                hooks.maybeInstallPlay(userId, callingUserId, new String[]{admin.getPackageName()});
+            });
 
             installExistingAdminPackage(userInfo.id, admin.getPackageName());
             if (!enableAdminAndSetProfileOwner(userInfo.id, caller.getUserId(), admin)) {
