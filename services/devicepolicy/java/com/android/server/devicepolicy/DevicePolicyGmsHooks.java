@@ -3,6 +3,7 @@ package com.android.server.devicepolicy;
 import static android.app.AppOpsManager.MODE_ALLOWED;
 
 
+import android.annotation.SuppressLint;
 import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -11,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.ext.PackageId;
 import android.os.RemoteException;
 import android.provider.Settings;
+import android.widget.Toast;
 
 import com.android.server.utils.Slogf;
 
@@ -61,14 +63,20 @@ public class DevicePolicyGmsHooks {
         }
 
         if (shouldInstall) {
-            installPlay(targetUserId, callerUserId);
+            if (!installPlay(targetUserId, callerUserId)) {
+                Toast.makeText(mContext.getApplicationContext(),
+                        "Failed to install Google Play in work profile despite requested by work profile App!",
+                        Toast.LENGTH_LONG
+                ).show();
+            }
         }
     }
     /**
      * GrapheneOS Handler to install sandboxed play into managed user profile
      * in order to allow DPC apps that require play services to work normally
      */
-    private void installPlay(int targetUserId, int callerUserId) {
+    @SuppressLint("MissingPermission")
+    private boolean installPlay(int targetUserId, int callerUserId) {
         // TODO: possibly copy permissions from existing install in managing user?
         Slogf.i(LOG_TAG, "Installing play for user " + targetUserId);
 
@@ -112,7 +120,7 @@ public class DevicePolicyGmsHooks {
             } else {
                 // TODO: intent to app store to install play packages?
                 Slogf.w(LOG_TAG, "Play Services not installed, yet requested for profile!");
-                return;
+                return false;
             }
 
             /* Signature check. If play store was already installed into profile earlier,
@@ -130,8 +138,11 @@ public class DevicePolicyGmsHooks {
                     PackageId.PLAY_STORE_NAME, /* flags= */ 0, targetUserId);
             mIAppOpsManager.setMode(AppOpsManager.OP_REQUEST_INSTALL_PACKAGES, storeUid,
                     PackageId.PLAY_STORE_NAME, MODE_ALLOWED);
+
+            return true;
         } catch (RemoteException e) {
             // Does not happen, same process
+            return false;
         }
     }
 }
