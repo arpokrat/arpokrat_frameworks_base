@@ -30,7 +30,9 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageInstaller;
 import android.content.pm.PackageInstaller.SessionInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ProviderInfo;
+import android.ext.PackageId;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -178,7 +180,22 @@ public class InstallStart extends Activity {
             mAbortInstall = true;
         }
 
-        checkDevicePolicyRestrictions(isTrustedSource);
+        // When a work profile with play services gets created Play Store can't install any apps
+        // as the work profile may have a policy active to forbid unknown sources as it is not
+        // aware that play store is not a system app and gets blocked by that policy.
+        // Here we detect if the play store is genuine and is trying to install an app
+        // in a work profile. If that is the case we allow it to proceed, despite not being a
+        // trusted source.
+        boolean isTrustedPlayStore = false;
+        try {
+          isTrustedPlayStore = callingPackage != null &&
+                  mPackageManager.getApplicationInfo(callingPackage, 0).ext().getPackageId() == PackageId.PLAY_STORE;
+        } catch(NameNotFoundException e) {
+          // Should never happen.
+        }
+        boolean isManagedProfile = mUserManager.isManagedProfile(mPackageManager.getUserId());
+
+        checkDevicePolicyRestrictions(isTrustedSource || (isTrustedPlayStore && isManagedProfile));
 
         final String installerPackageNameFromIntent = getIntent().getStringExtra(
                 Intent.EXTRA_INSTALLER_PACKAGE_NAME);
