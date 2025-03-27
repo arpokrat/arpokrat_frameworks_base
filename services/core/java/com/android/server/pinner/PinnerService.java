@@ -247,18 +247,12 @@ public final class PinnerService extends SystemService {
         mContext = context;
         mInjector = injector;
         mDeviceConfigInterface = mInjector.getDeviceConfigInterface();
-        mConfiguredToPinCamera = context.getResources().getBoolean(
-                com.android.internal.R.bool.config_pinnerCameraApp);
-        mConfiguredCameraPinBytes = context.getResources().getInteger(
-                com.android.internal.R.integer.config_pinnerCameraPinBytes);
-        mConfiguredAssistantPinBytes = context.getResources().getInteger(
-                com.android.internal.R.integer.config_pinnerAssistantPinBytes);
-        mConfiguredHomePinBytes = context.getResources().getInteger(
-                com.android.internal.R.integer.config_pinnerHomePinBytes);
-        mConfiguredToPinAssistant = context.getResources().getBoolean(
-                com.android.internal.R.bool.config_pinnerAssistantApp);
-        mConfiguredWebviewPinBytes = context.getResources().getInteger(
-                com.android.internal.R.integer.config_pinnerWebviewPinBytes);
+        mConfiguredToPinCamera = false;
+        mConfiguredCameraPinBytes = 0;
+        mConfiguredAssistantPinBytes = 0;
+        mConfiguredHomePinBytes = 0;
+        mConfiguredToPinAssistant = false;
+        mConfiguredWebviewPinBytes = 0;
         mConfiguredMaxPinnedMemoryPercentage = context.getResources().getInteger(
                 com.android.internal.R.integer.config_pinnerMaxPinnedMemoryPercentage);
 
