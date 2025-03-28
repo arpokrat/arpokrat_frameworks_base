@@ -13189,6 +13189,7 @@ public final class Settings {
         public static final String FORCE_APP_MEMTAG_BY_DEFAULT = "force_app_memtag";
 
         /** @hide */
+        @Protected(readWrite = KnownSystemPackage.SETTINGS)
         public static final String SHOW_SYSTEM_PROCESS_CRASH_NOTIFICATIONS = "show_system_process_crash_notifs";
 
         /** @hide */
