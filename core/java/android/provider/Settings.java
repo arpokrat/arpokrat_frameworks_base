@@ -13201,6 +13201,7 @@ public final class Settings {
         public static final String BATTERY_CHARGE_LIMIT = "battery_charge_limit";
 
         /** @hide */
+        @Protected(restrictReads = false, readWrite = KnownSystemPackage.SETTINGS)
         public static final String NETWORK_LOCATION = "network_location";
 
         // ExtSettings END
