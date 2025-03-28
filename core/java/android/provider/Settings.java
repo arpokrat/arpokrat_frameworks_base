@@ -13153,6 +13153,7 @@ public final class Settings {
         public static final String AUTO_REBOOT_TIMEOUT = "settings_reboot_after_timeout";
 
         /** @hide */
+        @Protected(restrictReads = false, readWrite = KnownSystemPackage.SETTINGS)
         public static final String GNSS_SUPL = "force_disable_supl"; // historical name
 
         /** @hide */
