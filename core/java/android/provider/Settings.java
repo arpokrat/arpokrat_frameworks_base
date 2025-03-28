@@ -13185,6 +13185,7 @@ public final class Settings {
         public static final String RESTRICT_WEBVIEW_DYN_CODE_LOADING_BY_DEFAULT = "restrict_webview_dyn_code_exec";
 
         /** @hide */
+        @Protected(readWrite = KnownSystemPackage.SETTINGS)
         public static final String FORCE_APP_MEMTAG_BY_DEFAULT = "force_app_memtag";
 
         /** @hide */
