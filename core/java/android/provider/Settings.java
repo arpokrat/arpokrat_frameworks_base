@@ -13193,6 +13193,7 @@ public final class Settings {
         public static final String SHOW_SYSTEM_PROCESS_CRASH_NOTIFICATIONS = "show_system_process_crash_notifs";
 
         /** @hide */
+        @Protected(restrictReads = false, readWrite = KnownSystemPackage.SETTINGS)
         public static final String WIDEVINE_PROVISIONING_SERVER = "widevine_provisioner_server";
 
         /** @hide */
