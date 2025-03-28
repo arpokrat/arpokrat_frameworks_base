@@ -13157,6 +13157,7 @@ public final class Settings {
         public static final String GNSS_SUPL = "force_disable_supl"; // historical name
 
         /** @hide */
+        @Protected(restrictReads = false, readWrite = KnownSystemPackage.SETTINGS)
         public static final String GNSS_PSDS_STANDARD = "psds_server"; // historical name
 
         /** @hide */
