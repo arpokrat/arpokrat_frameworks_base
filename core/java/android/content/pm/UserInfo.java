@@ -546,13 +546,11 @@ public class UserInfo implements Parcelable {
      * @hide
      */
     public boolean canHaveProfile(String userType) {
+        if (UserManager.isUserTypePrivateProfile(userType)) {
+            return isFull();
+        }
         if (!canHaveProfile()) {
             return false;
-        }
-        if (UserManager.isUserTypePrivateProfile(userType)) {
-            // Even if we eventually allow other users to have profiles too, only MainUsers are
-            // eligible to have a Private Space, for some reason.
-            return isMainUnlogged();
         }
         return true;
     }
