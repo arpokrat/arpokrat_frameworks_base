@@ -77,6 +77,10 @@ public class SystemUIApplication extends Application implements
     private CoreStartable[] mServices;
     private boolean mServicesStarted;
     private SystemUIAppComponentFactoryBase.ContextAvailableCallback mContextAvailableCallback;
+
+    public SysUIComponent getSysUIComponent() {
+        return mSysUIComponent;
+    }
     private SysUIComponent mSysUIComponent;
     private SystemUIInitializer mInitializer;
     private ProcessWrapper mProcessWrapper;

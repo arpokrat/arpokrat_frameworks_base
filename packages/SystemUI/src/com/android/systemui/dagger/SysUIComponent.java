@@ -25,6 +25,7 @@ import com.android.systemui.common.ui.GlobalConfig;
 import com.android.systemui.dagger.qualifiers.PerUser;
 import com.android.systemui.dump.DumpManager;
 import com.android.systemui.keyguard.KeyguardSliceProvider;
+import com.android.systemui.patchlevelwarning.PeriodicPatchLevelExpiryCheck;
 import com.android.systemui.people.PeopleProvider;
 import com.android.systemui.startable.Dependencies;
 import com.android.systemui.statusbar.NotificationInsetsModule;
@@ -189,4 +190,6 @@ public interface SysUIComponent {
      * Member injection into the supplied argument.
      */
     void inject(PeopleProvider peopleProvider);
+
+    void inject(PeriodicPatchLevelExpiryCheck periodicPatchLevelExpiryCheck);
 }

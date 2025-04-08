@@ -41,6 +41,7 @@ val Kosmos.deviceEntryHapticsInteractor by
             keyEventInteractor = keyEventInteractor,
             logger = biometricUnlockLogger,
             powerInteractor = powerInteractor,
+            keyguardUpdateMonitor = keyguardUpdateMonitor,
             systemClock = systemClock,
             dumpManager = dumpManager,
             keyguardUpdateMonitor = keyguardUpdateMonitor,

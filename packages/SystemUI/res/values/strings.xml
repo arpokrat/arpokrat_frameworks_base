@@ -4052,4 +4052,29 @@
     <string name="qs_edit_mode_reset_dialog_content">
         All Quick Settings tiles will reset to the device’s original settings
     </string>
+
+    <string name="patch_level_expiry_warning_notification_title">Patch level warning</string>
+    <string name="patch_level_expiry_warning_notification_tap_to_learn_more">Tap to learn more about keeping your device up-to-date and safe.</string>
+    <string name="patch_level_expiry_warning_dialog_title_updater_enabled">Check for new updates?</string>
+    <string name="patch_level_expiry_warning_dialog_title_updater_disabled">Enable automatic updates?</string>
+    <string name="patch_level_expiry_warning_dialog_title_updater_missing">System updater missing</string>
+    <string name="patch_level_expiry_warning_dialog_message_months_since_patch_level">{months, plural,
+        =1 {Your device\'s Android security patch level is {device_patch_level}, which is over # month old. Security updates are released every month.}
+        other {Your device\'s Android security patch level is {device_patch_level}, which is over # months old. Security updates are released every month.}
+    }</string>
+    <string name="patch_level_expiry_warning_dialog_message_debug__s">DEBUG_ALWAYS_EXPIRED is on; actual patch level is %1$s</string>
+    <string name="patch_level_expiry_warning_dialog_message_updater_enabled">Your device might not be checking for updates recently due to your settings. To stay secure, it\'s strongly recommended to manually check for updates and adjust your settings if needed to allow for automatic update checks.</string>
+    <string name="patch_level_expiry_warning_dialog_message_updater_disabled">Automatic system updates are currently disabled, leaving your device vulnerable. It\'s strongly recommended to enable automatic updates to stay secure.</string>
+    <string name="patch_level_expiry_warning_dialog_message_updater_missing">The system updater is missing from your device, so automatic updates are not possible.</string>
+    <string name="patch_level_expiry_warning_dialog_message_updater_missing_recommend_contacting_community_github">This is not normal, so it\'s strongly recommended to reach out to GrapheneOS community platforms and GitHub issue trackers for assistance. You can learn more about these platforms at <xliff:g id="contact_url_text" example="grapheneos.org/contact">%1$s</xliff:g></string>
+    <string name="patch_level_expiry_warning_dialog_message_not_system_user">Automatic system updates can only be managed by the main user.</string>
+    <string name="patch_level_expiry_warning_dialog_message_learn_more">Learn more about updates (including alternative update methods) and current releases at <xliff:g id="learn_more_url_text" example="grapheneos.org/usage">%1$s</xliff:g></string>
+    <string name="patch_level_expiry_warning_dialog_updater_unavailable_error_toast">System updater currently unavailable</string>
+    <string name="patch_level_expiry_warning_dialog_webpage_unavailable_error_toast">Unable to open webpage</string>
+    <string name="patch_level_expiry_warning_dialog_unable_to_parse_patch_level__s">The Android security patch level of your device (%1$s) could not be parsed by the system.</string>
+    <string name="patch_level_expiry_warning_dialog_expected_patch_level_format__s">The expected date format for the security patch level is: %1$s.</string>
+    <string name="patch_level_expiry_warning_dialog_unable_to_parse_patch_level_contact_community_github">Please use the community platforms and GitHub issue trackers for assistance. You can learn more about these platforms at <xliff:g id="contact_url_text" example="grapheneos.org/contact">%1$s</xliff:g></string>
+    <string name="patch_level_expiry_warning_dialog_updater_open_button">Check for updates</string>
+    <string name="patch_level_expiry_warning_dialog_updater_enable_button">Enable automatic updates</string>
+    <string name="patch_level_expiry_warning_dialog_tap_on_notification_to_reopen_dialog">Tap on the notification to reopen the popup.</string>
 </resources>

@@ -18444,6 +18444,13 @@ public final class Settings {
                 "hearing_device_local_notification";
 
         /**
+         * Whether patch level expiry popup & notification warning is disabled.
+         *
+         * @hide
+         */
+        public static final String PATCH_LEVEL_WARNING_DISABLED = "grapheneos_patch_level_warning_disabled";
+
+        /**
          * Global settings that shouldn't be persisted.
          *
          * @hide

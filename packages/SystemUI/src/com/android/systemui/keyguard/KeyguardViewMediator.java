@@ -66,6 +66,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.UserInfo;
+import android.database.ContentObserver;
 import android.graphics.Matrix;
 import android.hardware.biometrics.BiometricSourceType;
 import android.media.AudioAttributes;
@@ -138,6 +139,7 @@ import com.android.systemui.animation.TransitionAnimator;
 import com.android.systemui.broadcast.BroadcastDispatcher;
 import com.android.systemui.classifier.FalsingCollector;
 import com.android.systemui.communal.ui.viewmodel.CommunalTransitionViewModel;
+import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.dagger.qualifiers.Main;
 import com.android.systemui.dagger.qualifiers.UiBackground;
 import com.android.systemui.dreams.DreamOverlayStateController;
@@ -151,6 +153,8 @@ import com.android.systemui.keyguard.domain.interactor.KeyguardTransitionBootInt
 import com.android.systemui.keyguard.shared.model.TransitionStep;
 import com.android.systemui.log.SessionTracker;
 import com.android.systemui.navigationbar.NavigationModeController;
+import com.android.systemui.patchlevelwarning.PatchLevelWarningDialogDelegate;
+import com.android.systemui.patchlevelwarning.PeriodicPatchLevelExpiryCheck;
 import com.android.systemui.plugins.statusbar.StatusBarStateController;
 import com.android.systemui.process.ProcessWrapper;
 import com.android.systemui.res.R;
@@ -174,6 +178,7 @@ import com.android.systemui.statusbar.policy.UserSwitcherController;
 import com.android.systemui.user.domain.interactor.SelectedUserInteractor;
 import com.android.systemui.util.DeviceConfigProxy;
 import com.android.systemui.util.kotlin.JavaAdapter;
+import com.android.systemui.util.settings.GlobalSettings;
 import com.android.systemui.util.settings.SecureSettings;
 import com.android.systemui.util.settings.SystemSettings;
 import com.android.systemui.util.time.SystemClock;
@@ -1440,6 +1445,27 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
     private final Lazy<WindowManagerLockscreenVisibilityManager> mWmLockscreenVisibilityManager;
 
     private WindowManagerOcclusionManager mWmOcclusionManager;
+
+    private final Lazy<PatchLevelWarningDialogDelegate> mPatchLevelWarningDialogDelegate;
+
+    private boolean mIsPatchLevelWarningEnabled = true;
+
+    private long mPatchLevelJobScheduleKeyguardCheckLastTimeRun = 0;
+
+    private final long PATCH_LEVEL_JOB_SCHEDULE_KG_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 1 day
+
+    private final Handler mBgHandler;
+
+    private final GlobalSettings mGlobalSettings;
+
+    private final BroadcastReceiver mPatchExpiryNotificiationTapReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (PeriodicPatchLevelExpiryCheck.OPEN_DIALOG_ACTION.equals(intent.getAction())) {
+                maybeShowPatchLevelExpiredDialog();
+            }
+        }
+    };
     /**
 
      * Injected constructor. See {@link KeyguardModule}.
@@ -1482,6 +1508,7 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
             FeatureFlags featureFlags,
             SecureSettings secureSettings,
             SystemSettings systemSettings,
+            GlobalSettings globalSettings,
             SystemClock systemClock,
             ProcessWrapper processWrapper,
             @Main CoroutineDispatcher mainDispatcher,
@@ -1492,7 +1519,9 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
             SelectedUserInteractor selectedUserInteractor,
             KeyguardInteractor keyguardInteractor,
             KeyguardTransitionBootInteractor transitionBootInteractor,
-            WindowManagerOcclusionManager wmOcclusionManager) {
+            WindowManagerOcclusionManager wmOcclusionManager,
+            Lazy<PatchLevelWarningDialogDelegate> patchLevelWarningDialogDelegate,
+            @Background Handler bgHandler) {
         mContext = context;
         mUserTracker = userTracker;
         mFalsingCollector = falsingCollector;
@@ -1571,6 +1600,10 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
         mShowKeyguardWakeLock.setReferenceCounted(false);
 
         mWmOcclusionManager = wmOcclusionManager;
+
+        mBgHandler = bgHandler;
+        mPatchLevelWarningDialogDelegate = patchLevelWarningDialogDelegate;
+        mGlobalSettings = globalSettings;
     }
 
     public void userActivity() {
@@ -1662,6 +1695,34 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
         mJavaAdapter.alwaysCollectFlow(
                 mWallpaperRepository.getWallpaperSupportsAmbientMode(),
                 this::setWallpaperSupportsAmbientMode);
+
+        // note: observers are conflated
+        final ContentObserver observer = new ContentObserver(mBgHandler) {
+            @Override
+            public void onChange(boolean selfChange) {
+                mIsPatchLevelWarningEnabled = PeriodicPatchLevelExpiryCheck.isPatchLevelWarningEnabled(mContext);
+                if (mIsPatchLevelWarningEnabled) {
+                    PeriodicPatchLevelExpiryCheck.schedule(mContext, false);
+                } else {
+                    mPatchLevelWarningDialogDelegate.get().markDontShowOnKeyguard();
+                    PeriodicPatchLevelExpiryCheck.cancel(mContext);
+                }
+            }
+        };
+        final var expiryCheckEnabledUri =
+                Settings.Global.getUriFor(Settings.Global.PATCH_LEVEL_WARNING_DISABLED);
+        mGlobalSettings.registerContentObserverAsync(expiryCheckEnabledUri, observer);
+
+        final IntentFilter patchExpiryDialogOpenFilter = new IntentFilter();
+        patchExpiryDialogOpenFilter.addAction(PeriodicPatchLevelExpiryCheck.OPEN_DIALOG_ACTION);
+        patchExpiryDialogOpenFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
+        mContext.registerReceiver(mPatchExpiryNotificiationTapReceiver, patchExpiryDialogOpenFilter,
+                SYSTEMUI_PERMISSION, null /* scheduler */,
+                Context.RECEIVER_NOT_EXPORTED);
+    }
+
+    public void showPatchLevelExpiryWarningOnNextUnlock() {
+        mPatchLevelWarningDialogDelegate.get().markShowOnKeyguard();
     }
 
     @Override
@@ -2800,10 +2861,53 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
                                 USER_PRESENT_INTENT_OPTIONS);
                     }
                     mLockPatternUtils.userPresent(currentUserId);
+
+                    // Ensure expiry warning job is always scheduled if warning enabled.
+                    // Job might be cancelled if the main user of device force stops SystemUI
+                    // (force stopping System UI will still cause System UI to function)
+                    if (mIsPatchLevelWarningEnabled) {
+                        // limit number of calls to JobScheduler.getPendingJob
+                        final long now = System.currentTimeMillis();
+                        final long timeBetween = now - mPatchLevelJobScheduleKeyguardCheckLastTimeRun;
+                        if (timeBetween > PATCH_LEVEL_JOB_SCHEDULE_KG_CHECK_INTERVAL) {
+                            mPatchLevelJobScheduleKeyguardCheckLastTimeRun = now;
+                            if (!PeriodicPatchLevelExpiryCheck.isJobScheduled(mContext)) {
+                                Log.w(TAG, "expected PeriodicPatchLevelExpiryCheck to be scheduled; rescheduling");
+                                PeriodicPatchLevelExpiryCheck.schedule(mContext, false);
+                            }
+                        }
+                    }
+
+                    // Show expiry warning popup
+                    // This *could* be done as a separate app, but an implicit broadcast receiver
+                    // in a manifest wouldn't receive this broadcast.
+                    //
+                    // The periodic service marks the local variables in the delegate to avoid
+                    // having to do calculations on every keyguard unlock.
+                    if (mPatchLevelWarningDialogDelegate.get().shouldShowOnThisKeyguardUnlock()) {
+                        maybeShowPatchLevelExpiredDialog();
+                    }
                 });
             } else {
                 mBootSendUserPresent = true;
             }
+        }
+    }
+
+    /**
+     * Maybe shows patch level expiry dialog with no checks on whether it has been shown on keyguard
+     * unlock already. Also used for opening the dialog in the notifications.
+     */
+    private void maybeShowPatchLevelExpiredDialog() {
+        mPatchLevelWarningDialogDelegate.get().beforeDialogShown();
+        // Although the periodic service will mark us to show the dialog on keyguard unlock,
+        // need to sanity check this against the actual expiry state and setting
+        mIsPatchLevelWarningEnabled = PeriodicPatchLevelExpiryCheck.isPatchLevelWarningEnabled(mContext);
+        if (PeriodicPatchLevelExpiryCheck.isPatchLevelExpiredOrUnparseable() &&
+                mIsPatchLevelWarningEnabled) {
+            // post to UI thread of keyguard because possibly still holding a lock here, and
+            // should finish rest of keyguard animations
+            mHandler.post(() -> mPatchLevelWarningDialogDelegate.get().createDialog().show());
         }
     }
 

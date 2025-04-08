@@ -9,6 +9,8 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.util.Log;
 
+import com.android.systemui.patchlevelwarning.PeriodicPatchLevelExpiryCheck;
+
 import vendor.google.google_battery.IGoogleBattery;
 
 public class BootReceiver extends BroadcastReceiver {
@@ -23,6 +25,8 @@ public class BootReceiver extends BroadcastReceiver {
         if (BatteryChargeLimit.isChargeLimitEnabled(context)) {
             setChargingPolicy(IGoogleBattery.BatteryChargingPolicy.LONGLIFE);
         }
+
+        PeriodicPatchLevelExpiryCheck.schedule(context, true);
     }
 
     private static void setChargingPolicy(int policy) {

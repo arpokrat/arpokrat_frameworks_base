@@ -106,6 +106,7 @@ import com.android.systemui.keyguard.domain.interactor.KeyguardTransitionBootInt
 import com.android.systemui.kosmos.KosmosJavaAdapter;
 import com.android.systemui.log.SessionTracker;
 import com.android.systemui.navigationbar.NavigationModeController;
+import com.android.systemui.patchlevelwarning.PatchLevelWarningDialogDelegate;
 import com.android.systemui.process.ProcessWrapper;
 import com.android.systemui.scene.FakeWindowRootViewComponent;
 import com.android.systemui.scene.ui.view.WindowRootView;
@@ -133,9 +134,11 @@ import com.android.systemui.util.DeviceConfigProxy;
 import com.android.systemui.util.DeviceConfigProxyFake;
 import com.android.systemui.util.concurrency.FakeExecutor;
 import com.android.systemui.util.kotlin.JavaAdapter;
+import com.android.systemui.util.settings.GlobalSettings;
 import com.android.systemui.util.settings.SecureSettings;
 import com.android.systemui.util.settings.SystemSettings;
 import com.android.systemui.util.time.FakeSystemClock;
+import com.android.systemui.utils.os.FakeHandler;
 import com.android.systemui.wallpapers.data.repository.FakeWallpaperRepository;
 import com.android.window.flags.Flags;
 import com.android.wm.shell.keyguard.KeyguardTransitions;
@@ -223,6 +226,7 @@ public class KeyguardViewMediatorTest extends SysuiTestCase {
     private @Mock SessionTracker mSessionTracker;
     private @Mock SystemSettings mSystemSettings;
     private @Mock SecureSettings mSecureSettings;
+    private @Mock GlobalSettings mGlobalSettings;
     private @Mock AlarmManager mAlarmManager;
     private @Mock ProcessWrapper mProcessWrapper;
     private FakeSystemClock mSystemClock;
@@ -1318,6 +1322,7 @@ public class KeyguardViewMediatorTest extends SysuiTestCase {
     private void createAndStartViewMediator(boolean orderUnlockAndWake) {
         mContext.getOrCreateTestableResources().addOverride(
                 com.android.internal.R.bool.config_orderUnlockAndWake, orderUnlockAndWake);
+        var fakeHandler = new FakeHandler(TestableLooper.get(this).getLooper());
 
         mViewMediator = new KeyguardViewMediator(
                 mContext,
@@ -1359,6 +1364,7 @@ public class KeyguardViewMediatorTest extends SysuiTestCase {
                 mFeatureFlags,
                 mSecureSettings,
                 mSystemSettings,
+                mGlobalSettings,
                 mSystemClock,
                 mProcessWrapper,
                 mDispatcher,
@@ -1369,7 +1375,9 @@ public class KeyguardViewMediatorTest extends SysuiTestCase {
                 mSelectedUserInteractor,
                 mKeyguardInteractor,
                 mKeyguardTransitionBootInteractor,
-                mock(WindowManagerOcclusionManager.class));
+                mock(WindowManagerOcclusionManager.class),
+                () -> mock(PatchLevelWarningDialogDelegate.class),
+                fakeHandler);
         mViewMediator.start();
 
         mViewMediator.registerCentralSurfaces(mCentralSurfaces, null, null, null, null);
