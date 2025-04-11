@@ -3,6 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="app.grapheneos.hardeningtest">
 
+    <!--   Since there are multiple versions of HardeningTest, permission name of -->
+    <!--   dynamic receiver not exported checks conflicts between them. -->
+    <!--   Remove this permission, it doesn't affect the testing app's functionality. -->
+    <permission android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        tools:node="remove" />
+
     <application
         android:zygotePreloadName="app.grapheneos.hardeningtest.ZygotePreloadImpl" >
 
