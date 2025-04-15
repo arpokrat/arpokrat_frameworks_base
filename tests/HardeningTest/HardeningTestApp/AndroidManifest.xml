@@ -25,9 +25,9 @@
             android:useAppZygote="true"
             android:exported="false" />
 
-<!--   Since there are multiple versions of HardeningTest, authority value of androidx InitializationProvider -->
-<!--   conflicts between them.-->
-<!--   Remove this provider, it doesn't affect app's functionality.-->
+	<!--   Since there are multiple versions of HardeningTest, authority value of androidx InitializationProvider -->
+	<!--   conflicts between them.-->
+	<!--   Remove this provider, it doesn't affect app's functionality.-->
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
