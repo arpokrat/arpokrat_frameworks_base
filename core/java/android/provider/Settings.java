@@ -11034,6 +11034,7 @@ public final class Settings {
          *
          * @hide
          */
+        @Protected(readWrite = KnownSystemPackage.SETTINGS)
         public static final String SEND_CENSORED_NOTIFICATIONS_TO_CURRENT_USER =
                 "send_censored_notifications_to_current_user";
 
