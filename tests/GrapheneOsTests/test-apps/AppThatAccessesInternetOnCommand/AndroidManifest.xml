@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     package="grapheneos.srtpermtests.internet.appthataccessesinternet">
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+    <!-- For step counter sensor -->
+    <!-- <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" /> -->
+
+    <application android:label="GosInternetAccess" android:debuggable="true">
+        <service android:name=".AccessInternetOnCommand"
+            android:exported="true" />
+    </application>
+</manifest>

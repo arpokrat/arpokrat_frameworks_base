@@ -1,0 +1,42 @@
+android_test {
+    name: "SpecialRuntimePermsTestCases",
+    defaults: [
+        "cts_defaults",
+        "mts-target-sdk-version-current",
+    ],
+    libs: [
+        "android.test.runner.stubs.system",
+        "android.test.base.stubs.system",
+        "android.test.mock.stubs.system",
+    ],
+    static_libs: [
+        "androidx.test.uiautomator_uiautomator",
+        "androidx.test.rules",
+        "compatibility-device-util-axt",
+        "platform-test-annotations",
+        "cts-wm-util",
+        "cts-install-lib",
+        "android.content.pm.flags-aconfig-java",
+        "ShortcutManagerTestUtils",
+        "kotlin-test",
+        "kotlinx_coroutines_test",
+        "grapheneos-test-common",
+        "framework-protos",
+        // TODO: Figure out how to use IIntentSender in
+        // cts/tests/tests/content/src/android/content/pm/cts/PackageManagerShellCommandInstallTest.java
+    ],
+    resource_dirs: ["res"],
+    srcs: [
+        "src/**/*.java",
+        "src/**/*.aidl",
+        "src/**/*.kt",
+    ],
+    data: [
+        ":GosHelloWorldAppV1",
+        ":GosHelloWorldAppV2",
+        ":GosAppThatAccessesInternetOnCommand",
+    ],
+    per_testcase_directory: true,
+    platform_apis: true,
+    sdk_version: "test_current",
+}

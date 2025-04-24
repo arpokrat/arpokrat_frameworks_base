@@ -1,0 +1,25 @@
+android_library {
+    name: "grapheneos-test-common",
+    srcs: [
+        "src/**/*.kt",
+        "src/**/*.java",
+    ],
+    platform_apis: true,
+    static_libs: [
+        "androidx.test.uiautomator_uiautomator",
+        "androidx.test.rules",
+        "compatibility-device-util-axt",
+        "platform-test-annotations",
+        "cts-wm-util",
+        "cts-install-lib",
+        "android.content.pm.flags-aconfig-java",
+        "ShortcutManagerTestUtils",
+        "kotlin-test",
+    ],
+    //libs: [
+    //    "android.test.base.stubs.system",
+    //    "android.test.runner.stubs.system",
+    //],
+
+    target_sdk_version: "current",
+}
