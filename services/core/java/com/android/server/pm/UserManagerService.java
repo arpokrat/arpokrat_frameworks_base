@@ -588,7 +588,7 @@ public class UserManagerService extends IUserManager.Stub {
             this.mListenersMap = new SparseArray<>();
         }
 
-        private void addListeners(@UserIdInt int parentUserId, boolean register) {
+        private void addListeners(@UserIdInt int parentUserId, boolean initialize) {
             UserData userData;
             synchronized (mUms.mUsersLock) {
                 userData = mUms.getUserDataLU(parentUserId);
@@ -601,8 +601,9 @@ public class UserManagerService extends IUserManager.Stub {
             synchronized (mListenersMapLock) {
                 var listeners = new PrivateProfileAutoLockSettingsListeners(mUms, parentUserId);
                 mListenersMap.append(parentUserId, listeners);
-                if (register) {
+                if (initialize) {
                     listeners.regiserObserver();
+                    listeners.autoLockPrivateSpace();
                 }
             }
         }
@@ -1227,7 +1228,7 @@ public class UserManagerService extends IUserManager.Stub {
                             && targetUser.isFull()) {
                         mUms.setLastEnteredForegroundTimeToNow(user);
                     }
-                    if (targetUser.isFull()) {
+                    if (targetUser.isFull() && !user.info.isMain()) {
                         mUms.mPrivateProfileAutoLockListeners.addListeners(
                                 targetUser.getUserIdentifier(), true);
                     }
@@ -1267,7 +1268,7 @@ public class UserManagerService extends IUserManager.Stub {
                     user.startRealtime = 0;
                     user.unlockRealtime = 0;
                 }
-                if (targetUser.isFull()) {
+                if (targetUser.isFull() && !user.info.isMain()) {
                     mUms.mPrivateProfileAutoLockListeners.removeListeners(targetUser.getUserIdentifier());
                 }
             }
