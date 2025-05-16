@@ -962,7 +962,7 @@ public class UserManagerService extends IUserManager.Stub {
         private @UserIdInt int[] getPrivateProfileUserIds() {
             synchronized (mUms.mUsersLock) {
                 return mUms.getProfileIdsLU(mParentUserId, USER_TYPE_PROFILE_PRIVATE,
-                        /* enabledOnly = */ true, /* excludeHidden = */  true)
+                        /* enabledOnly = */ true, /* excludeHidden = */ false)
                         .toArray();
             }
         }
