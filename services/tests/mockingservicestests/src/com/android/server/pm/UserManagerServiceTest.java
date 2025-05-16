@@ -606,7 +606,7 @@ public final class UserManagerServiceTest {
                 eq(privateProfileUser.getUserHandle().getIdentifier()), eq(true), any(),
                 any());
 
-        mSpiedUms.autoLockPrivateSpace();
+        mSpiedUms.autoLockPrivateSpaceOfMainUser();
 
         Mockito.verify(mSpiedUms).setQuietModeEnabledAsync(
                 eq(privateProfileUser.getUserHandle().getIdentifier()), eq(true),
@@ -629,7 +629,7 @@ public final class UserManagerServiceTest {
                 eq(privateProfileUser.getUserHandle().getIdentifier()), eq(true), any(),
                 any());
 
-        mSpiedUms.tryAutoLockingPrivateSpaceOnKeyguardChanged(true);
+        mSpiedUms.tryAutoLockingPrivateSpaceOnKeyguardChangedOnMainUser(true);
 
         Mockito.verify(mSpiedUms).setQuietModeEnabledAsync(
                 eq(privateProfileUser.getUserHandle().getIdentifier()), eq(true),
@@ -648,7 +648,7 @@ public final class UserManagerServiceTest {
                 USER_TYPE_PROFILE_PRIVATE, 0, 0, null);
         mockAutoLockForPrivateSpace(Settings.Secure.PRIVATE_SPACE_AUTO_LOCK_ON_DEVICE_LOCK);
 
-        mSpiedUms.tryAutoLockingPrivateSpaceOnKeyguardChanged(false);
+        mSpiedUms.tryAutoLockingPrivateSpaceOnKeyguardChangedOnMainUser(false);
 
         // Verify that no operation to disable quiet mode is not called
         Mockito.verify(mSpiedUms, never()).setQuietModeEnabledAsync(
@@ -668,7 +668,7 @@ public final class UserManagerServiceTest {
                 mSpiedUms.createProfileForUserEvenWhenDisallowedWithThrow(PRIVATE_PROFILE_NAME,
                 USER_TYPE_PROFILE_PRIVATE, 0, mainUser, null);
 
-        mSpiedUms.tryAutoLockingPrivateSpaceOnKeyguardChanged(true);
+        mSpiedUms.tryAutoLockingPrivateSpaceOnKeyguardChangedOnMainUser(true);
 
         // Verify that no auto-lock operations take place
         verify((MockedVoidMethod) () -> Settings.Secure.getInt(any(),
@@ -692,13 +692,13 @@ public final class UserManagerServiceTest {
         UserInfo privateProfileUser =
                 mSpiedUms.createProfileForUserEvenWhenDisallowedWithThrow(PRIVATE_PROFILE_NAME,
                         USER_TYPE_PROFILE_PRIVATE, 0, mainUser, null);
-        Mockito.doNothing().when(mSpiedUms).scheduleAlarmToAutoLockPrivateSpace(
+        Mockito.doNothing().when(mSpiedUms).scheduleAlarmToAutoLockPrivateSpaceOfMainUser(
                 eq(privateProfileUser.getUserHandle().getIdentifier()), anyLong());
 
 
-        mSpiedUms.maybeScheduleAlarmToAutoLockPrivateSpace();
+        mSpiedUms.maybeScheduleAlarmToAutoLockPrivateSpaceOfMainUser();
 
-        Mockito.verify(mSpiedUms).scheduleAlarmToAutoLockPrivateSpace(
+        Mockito.verify(mSpiedUms).scheduleAlarmToAutoLockPrivateSpaceOfMainUser(
                 eq(privateProfileUser.getUserHandle().getIdentifier()), anyLong());
     }
 
@@ -708,7 +708,7 @@ public final class UserManagerServiceTest {
                 android.multiuser.Flags.FLAG_ENABLE_PRIVATE_SPACE_FEATURES);
         mSetFlagsRule.enableFlags(Flags.FLAG_SUPPORT_AUTOLOCK_FOR_PRIVATE_SPACE);
 
-        mUms.setOrUpdateAutoLockPreferenceForPrivateProfile(
+        mUms.setOrUpdateAutoLockPreferenceForPrivateProfileOfMainUser(
                 Settings.Secure.PRIVATE_SPACE_AUTO_LOCK_AFTER_INACTIVITY);
 
         Mockito.verify(mSpiedContext, never()).registerReceiver(any(), any(), any(), any());
@@ -728,7 +728,7 @@ public final class UserManagerServiceTest {
                         USER_TYPE_PROFILE_PRIVATE, 0, mainUser, null);
 
         // Set the preference to auto lock on device lock
-        mUms.setOrUpdateAutoLockPreferenceForPrivateProfile(
+        mUms.setOrUpdateAutoLockPreferenceForPrivateProfileOfMainUser(
                 Settings.Secure.PRIVATE_SPACE_AUTO_LOCK_ON_DEVICE_LOCK);
 
         // Verify that keyguard state listener was added
@@ -744,7 +744,7 @@ public final class UserManagerServiceTest {
         Mockito.clearInvocations(mSpiedContext);
 
         // Now set the preference to auto-lock on inactivity
-        mUms.setOrUpdateAutoLockPreferenceForPrivateProfile(
+        mUms.setOrUpdateAutoLockPreferenceForPrivateProfileOfMainUser(
                 Settings.Secure.PRIVATE_SPACE_AUTO_LOCK_AFTER_INACTIVITY);
 
         // Verify that inactivity broadcasts are registered
@@ -760,7 +760,7 @@ public final class UserManagerServiceTest {
 
         // Finally, set the preference to auto-lock only after device restart, which is the default
         // behaviour
-        mUms.setOrUpdateAutoLockPreferenceForPrivateProfile(
+        mUms.setOrUpdateAutoLockPreferenceForPrivateProfileOfMainUser(
                 Settings.Secure.PRIVATE_SPACE_AUTO_LOCK_AFTER_DEVICE_RESTART);
 
         // Verify that inactivity broadcasts are unregistered and keyguard listener was removed
