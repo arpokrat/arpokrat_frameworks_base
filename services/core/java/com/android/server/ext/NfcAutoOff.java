@@ -15,14 +15,11 @@ import android.util.Slog;
 class NfcAutoOff extends DelayedConditionalAction {
     private static final String TAG = NfcAutoOff.class.getSimpleName();
 
-    private final NfcManager manager;
-    @Nullable
-    private final NfcAdapter adapter;
+    private final Context context;
 
     private NfcAutoOff(SystemServerExt sse) {
         super(sse, ExtSettings.NFC_AUTO_OFF, sse.bgHandler);
-        manager = sse.context.getSystemService(NfcManager.class);
-        adapter = manager.getDefaultAdapter();
+        context = sse.context;
     }
 
     static void maybeInit(SystemServerExt sse) {
@@ -40,7 +37,7 @@ class NfcAutoOff extends DelayedConditionalAction {
     protected void alarmTriggered() {
         if (isAdapterOn()) {
             Slog.d(TAG, "adapter.disable(true)");
-            adapter.disable(true);
+            getAdapter().disable(true);
         }
     }
 
@@ -58,8 +55,14 @@ class NfcAutoOff extends DelayedConditionalAction {
         }, f, null, handler);
     }
 
+    @Nullable
+    private NfcAdapter getAdapter() {
+        return NfcAdapter.getDefaultAdapter(context);
+    }
+
     private boolean isAdapterOn() {
         Slog.d(TAG, "isAdapterOn");
+        var adapter = getAdapter();
         if (adapter != null) {
             boolean isEnabled = adapter.isEnabled();
             Slog.d(TAG, "isEnabled: " + isEnabled);
