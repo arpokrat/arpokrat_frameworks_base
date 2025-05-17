@@ -580,6 +580,7 @@ public class UserManagerService extends IUserManager.Stub {
 
         private final UserManagerService mUms;
         private final Object mListenersMapLock = new Object();
+        private volatile boolean mIsMainUserListenerAdded = false;
         @GuardedBy("mListenersMapLock")
         private final SparseArray<PrivateProfileAutoLockSettingsListeners> mListenersMap;
 
@@ -588,82 +589,91 @@ public class UserManagerService extends IUserManager.Stub {
             this.mListenersMap = new SparseArray<>();
         }
 
-        private void addListeners(@UserIdInt int parentUserId, boolean initialize) {
+        private void addListeners(@UserIdInt int userId, boolean initialize) {
             UserData userData;
             synchronized (mUms.mUsersLock) {
-                userData = mUms.getUserDataLU(parentUserId);
+                userData = mUms.getUserDataLU(userId);
             }
+            addListeners(userData, initialize);
+        }
 
-            if (!isUserFullAndCanHavePrivateProfilesInner(userData)) {
+        private void addListeners(@Nullable UserData userData, boolean initialize) {
+            if (!canAddOrRemoveListeners(userData, /* add = */ true)) {
                 return;
             }
 
+            addListenersUnchecked(userData, initialize);
+        }
+
+        private void addListenersUnchecked(final UserData userData, boolean initialize) {
+            final int userId = userData.info.id;
             synchronized (mListenersMapLock) {
-                var listeners = new PrivateProfileAutoLockSettingsListeners(mUms, parentUserId);
-                mListenersMap.append(parentUserId, listeners);
+                var listeners = new PrivateProfileAutoLockSettingsListeners(mUms, userId);
+                mListenersMap.append(userId, listeners);
+                if (userData.info.isMain()) {
+                    mIsMainUserListenerAdded = true;
+                }
                 if (initialize) {
-                    listeners.regiserObserver();
-                    listeners.autoLockPrivateSpace();
+                    listeners.initialize();
                 }
             }
         }
 
-        private void removeListeners(@UserIdInt int parentUserId) {
+        private void removeListeners(@UserIdInt int userId) {
             UserData userData;
             synchronized (mUms.mUsersLock) {
-                userData = mUms.getUserDataLU(parentUserId);
+                userData = mUms.getUserDataLU(userId);
             }
-
-            if (!isUserFullAndCanHavePrivateProfilesInner(userData)) {
-                return;
-            }
-
-            if (userData.info.isMain()) {
-                return;
-            }
-
-            removeListenersUnchecked(parentUserId);
+            removeListeners(userData);
         }
 
-        private void removeListenersUnchecked(@UserIdInt int parentUserId) {
+        private void removeListeners(final @Nullable UserData userData) {
+            if (!canAddOrRemoveListeners(userData, /* add = */ false)) {
+                return;
+            }
+
+            removeListenersUnchecked(userData);
+        }
+
+        private void removeListenersUnchecked(final UserData userData) {
+            final int userId = userData.info.id;
             synchronized (mListenersMapLock) {
-                var listeners = new PrivateProfileAutoLockSettingsListeners(mUms, parentUserId);
+                var listeners = new PrivateProfileAutoLockSettingsListeners(mUms, userId);
                 listeners.unregiserObserver();
                 listeners.cancelPendingAutoLockAlarms();
-                mListenersMap.remove(parentUserId);
+                mListenersMap.remove(userId);
             }
         }
 
         @Nullable
         private PrivateProfileAutoLockSettingsListeners getListeners(
-                @UserIdInt int parentUserId) {
-            UserData userData;
-            synchronized (mUms.mUsersLock) {
-                userData = mUms.getUserDataLU(parentUserId);
-            }
-
-            if (!isUserFullAndCanHavePrivateProfilesInner(userData)) {
-                return null;
-            }
-
-            return getListenersUnchecked(parentUserId);
-        }
-
-        @Nullable
-        private PrivateProfileAutoLockSettingsListeners getListenersUnchecked(
-                @UserIdInt int parentUserId) {
+                @UserIdInt int userId) {
             synchronized (mListenersMapLock) {
-                return mListenersMap.get(parentUserId);
+                return mListenersMap.get(userId);
             }
         }
 
-        private boolean isUserFullAndCanHavePrivateProfilesInner(@Nullable UserData userData) {
+        // add = false implies removal
+        private boolean canAddOrRemoveListeners(@Nullable UserData userData, boolean add) {
             if (userData == null) {
                 return false;
             }
 
             if (!userData.info.canHaveProfileOfType(USER_TYPE_PROFILE_PRIVATE)) {
                 return false;
+            }
+
+            // Disallow adding again or removal of listeners on main user.
+            if (add) {
+                if (userData.info.isMain()) {
+                    if (mIsMainUserListenerAdded) {
+                        return false;
+                    }
+                }
+            } else {
+                if (userData.info.isMain()) {
+                    return false;
+                }
             }
 
             return true;
@@ -698,6 +708,18 @@ public class UserManagerService extends IUserManager.Stub {
 
         private Handler getHandler() {
             return mUms.mHandler;
+        }
+
+        private void initialize() {
+            regiserObserver();
+            setOrUpdateAutoLockPreferenceForPrivateProfile(
+                    Settings.Secure.getIntForUser(mUms.mContext.getContentResolver(),
+                            Settings.Secure.PRIVATE_SPACE_AUTO_LOCK,
+                            Settings.Secure.PRIVATE_SPACE_AUTO_LOCK_AFTER_DEVICE_RESTART,
+                            mParentUserId));
+            if (mUms.isAutoLockingPrivateSpaceOnRestartsEnabled()){
+                autoLockPrivateSpace();
+            }
         }
 
         private void regiserObserver() {
@@ -994,7 +1016,7 @@ public class UserManagerService extends IUserManager.Stub {
         int mainUserId = getMainUserIdUnchecked();
         if (mainUserId != UserHandle.USER_NULL) {
             PrivateProfileAutoLockSettingsListeners listeners =
-                    mPrivateProfileAutoLockListeners.getListenersUnchecked(mainUserId);
+                    mPrivateProfileAutoLockListeners.getListeners(mainUserId);
             if (listeners != null) {
                 listeners.setOrUpdateAutoLockPreferenceForPrivateProfile(autoLockPreference);
             }
@@ -1006,7 +1028,7 @@ public class UserManagerService extends IUserManager.Stub {
         int mainUserId = getMainUserIdUnchecked();
         if (mainUserId != UserHandle.USER_NULL) {
             PrivateProfileAutoLockSettingsListeners listeners =
-                    mPrivateProfileAutoLockListeners.getListenersUnchecked(mainUserId);
+                    mPrivateProfileAutoLockListeners.getListeners(mainUserId);
             if (listeners != null) {
                 listeners.maybeScheduleAlarmToAutoLockPrivateSpace();
             }
@@ -1018,7 +1040,7 @@ public class UserManagerService extends IUserManager.Stub {
         int mainUserId = getMainUserIdUnchecked();
         if (mainUserId != UserHandle.USER_NULL) {
             PrivateProfileAutoLockSettingsListeners listeners =
-                    mPrivateProfileAutoLockListeners.getListenersUnchecked(mainUserId);
+                    mPrivateProfileAutoLockListeners.getListeners(mainUserId);
             if (listeners != null) {
                 listeners.scheduleAlarmToAutoLockPrivateSpace(userId, delayInMillis);
             }
@@ -1030,7 +1052,7 @@ public class UserManagerService extends IUserManager.Stub {
         int mainUserId = getMainUserIdUnchecked();
         if (mainUserId != UserHandle.USER_NULL) {
             PrivateProfileAutoLockSettingsListeners listeners =
-                    mPrivateProfileAutoLockListeners.getListenersUnchecked(mainUserId);
+                    mPrivateProfileAutoLockListeners.getListeners(mainUserId);
             if (listeners != null) {
                 listeners.tryAutoLockingPrivateSpaceOnKeyguardChanged(isKeyguardLocked);
             }
@@ -1042,7 +1064,7 @@ public class UserManagerService extends IUserManager.Stub {
         int mainUserId = getMainUserIdUnchecked();
         if (mainUserId != UserHandle.USER_NULL) {
             PrivateProfileAutoLockSettingsListeners listeners =
-                    mPrivateProfileAutoLockListeners.getListenersUnchecked(mainUserId);
+                    mPrivateProfileAutoLockListeners.getListeners(mainUserId);
             if (listeners != null) {
                 listeners.autoLockPrivateSpace();
             }
@@ -1228,10 +1250,7 @@ public class UserManagerService extends IUserManager.Stub {
                             && targetUser.isFull()) {
                         mUms.setLastEnteredForegroundTimeToNow(user);
                     }
-                    if (targetUser.isFull() && !user.info.isMain()) {
-                        mUms.mPrivateProfileAutoLockListeners.addListeners(
-                                targetUser.getUserIdentifier(), true);
-                    }
+                    mUms.mPrivateProfileAutoLockListeners.addListeners(user, /* initialize = */ true);
                 }
             }
         }
@@ -1268,9 +1287,7 @@ public class UserManagerService extends IUserManager.Stub {
                     user.startRealtime = 0;
                     user.unlockRealtime = 0;
                 }
-                if (targetUser.isFull() && !user.info.isMain()) {
-                    mUms.mPrivateProfileAutoLockListeners.removeListeners(targetUser.getUserIdentifier());
-                }
+                mUms.mPrivateProfileAutoLockListeners.removeListeners(user);
             }
         }
     }
@@ -1370,20 +1387,11 @@ public class UserManagerService extends IUserManager.Stub {
             int mainUserId = getMainUserIdUnchecked();
             if (mainUserId != UserHandle.USER_NULL) {
                 PrivateProfileAutoLockSettingsListeners listeners =
-                        mPrivateProfileAutoLockListeners.getListenersUnchecked(mainUserId);
+                        mPrivateProfileAutoLockListeners.getListeners(mainUserId);
                 if (listeners != null) {
-                    listeners.regiserObserver();
-                    listeners.setOrUpdateAutoLockPreferenceForPrivateProfile(
-                            Settings.Secure.getIntForUser(mContext.getContentResolver(),
-                                    Settings.Secure.PRIVATE_SPACE_AUTO_LOCK,
-                                    Settings.Secure.PRIVATE_SPACE_AUTO_LOCK_AFTER_DEVICE_RESTART,
-                                    mainUserId));
+                    listeners.initialize();
                 }
             }
-        }
-
-        if (isAutoLockingPrivateSpaceOnRestartsEnabled()) {
-            autoLockPrivateSpaceOfMainUser();
         }
 
         showHsumNotificationIfNeeded();
