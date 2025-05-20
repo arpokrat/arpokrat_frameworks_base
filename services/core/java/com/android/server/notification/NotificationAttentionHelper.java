@@ -636,8 +636,21 @@ public final class NotificationAttentionHelper {
                 mNMP.getNotificationByKey(mVibrateNotificationKey));
     }
 
+    record MuteReasonFetchingParam(boolean shouldGetMuteReasonOnly) {
+        static MuteReasonFetchingParam of(boolean shouldGetMuteReasonOnly) {
+            return new MuteReasonFetchingParam(shouldGetMuteReasonOnly);
+        }
+    }
+
     @MuteReason int shouldMuteNotificationLocked(final NotificationRecord record,
             final Signals signals, boolean hasAudibleAlert) {
+        return shouldMuteNotificationLocked(record, signals, hasAudibleAlert,
+                MuteReasonFetchingParam.of(false));
+    }
+
+    @MuteReason int shouldMuteNotificationLocked(
+            final NotificationRecord record, final Signals signals, boolean hasAudibleAlert,
+            final MuteReasonFetchingParam muteReasonFetchingParam) {
         // Suppressed because no audible alert
         if (!hasAudibleAlert) {
             return MUTE_REASON_NOT_AUDIBLE;
@@ -681,9 +694,16 @@ public final class NotificationAttentionHelper {
 
         // Suppressed for being too recently noisy
         final String pkg = record.getSbn().getPackageName();
-        if (mUsageStats.isAlertRateLimited(pkg)) {
-            Slog.e(TAG, "Muting recently noisy " + record.getKey());
-            return MUTE_REASON_RATE_LIMIT;
+        if (muteReasonFetchingParam.shouldGetMuteReasonOnly()) {
+            if (mUsageStats.wasAlertRecentlyRateLimited(pkg)) {
+                Slog.i(TAG, "Recently noisy: " + record.getKey() + ", reason: was muted");
+                return MUTE_REASON_RATE_LIMIT;
+            }
+        } else {
+            if (mUsageStats.isAlertRateLimited(pkg)) {
+                Slog.e(TAG, "Muting recently noisy " + record.getKey());
+                return MUTE_REASON_RATE_LIMIT;
+            }
         }
 
         // A different looping ringtone, such as an incoming call is playing
@@ -704,7 +724,9 @@ public final class NotificationAttentionHelper {
         if (isPoliteNotificationFeatureEnabled(record)) {
             // Notify the politeness strategy that an alerting notification is posted
             if (!isInsistentUpdate(record)) {
-                mStrategy.onNotificationPosted(record);
+                if (!muteReasonFetchingParam.shouldGetMuteReasonOnly()) {
+                    mStrategy.onNotificationPosted(record);
+                }
             }
 
             // Suppress if politeness is muted and it's not an update for insistent
@@ -1027,7 +1049,7 @@ public final class NotificationAttentionHelper {
         return true;
     }
 
-    String disableNotificationEffects(NotificationRecord record, int listenerHints) {
+    private String disableNotificationEffects(NotificationRecord record, int listenerHints) {
         if (mDisableNotificationEffects) {
             return "booleanState";
         }

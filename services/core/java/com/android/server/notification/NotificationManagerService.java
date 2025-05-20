@@ -9731,27 +9731,29 @@ public class NotificationManagerService extends SystemService {
             return CensoredSendState.DONT_SEND;
         }
 
-        // Handles reoccurring update notifications (fixes issues like status update spamming).
-        if (record.isUpdate && (record.getNotification().flags & FLAG_ONLY_ALERT_ONCE) != 0) {
-            if (DBG) Slog.d(TAG, "not sending censored notif due to original being " +
-                    "an update that only alerts once");
-            return CensoredSendState.DONT_SEND;
-        }
-
-        // Muted by listener
-        final String disableEffects = mAttentionHelper.disableNotificationEffects(record, mListenerHints);
-        if (disableEffects != null) {
-            if (DBG) Slog.d(TAG, "not sending censored notif due to disableEffects");
-            return CensoredSendState.DONT_SEND;
-        }
-
-        // Suppressed because another notification in its group handles alerting
-        if (record.getSbn().isGroup()) {
-            if (record.getNotification().suppressAlertingDueToGrouping()) {
-                if (DBG) Slog.d(TAG, "not sending censored notif due another" +
-                        "notification in its group handles alerting");
-                return CensoredSendState.DONT_SEND;
+        final var signals = new NotificationAttentionHelper.Signals(false, mListenerHints);
+        @NotificationAttentionHelper.MuteReason
+        final int muteReason = mAttentionHelper.shouldMuteNotificationLocked(record, signals, true,
+                NotificationAttentionHelper.MuteReasonFetchingParam.of(true));
+        if (DBG) Slog.d(TAG, "acquired mute reason: " + muteReason +
+                " for querying most noisy censored send state possible");
+        final CensoredSendState mostNoisyCensoredSendStateAllowed = switch (muteReason) {
+            // Do Not Disturb checks is done separately, see later comments.
+            case NotificationAttentionHelper.MUTE_REASON_DND,
+                 NotificationAttentionHelper.MUTE_REASON_NOT_MUTED
+                    -> CensoredSendState.SEND_NORMAL;
+            case NotificationAttentionHelper.MUTE_REASON_SILENT_UPDATE,
+                 NotificationAttentionHelper.MUTE_REASON_LISTENER_HINT,
+                 NotificationAttentionHelper.MUTE_REASON_GROUP_ALERT
+                    -> {
+                yield CensoredSendState.DONT_SEND;
             }
+            default -> CensoredSendState.SEND_QUIET;
+        };
+        if (mostNoisyCensoredSendStateAllowed == CensoredSendState.DONT_SEND) {
+            if (DBG) Slog.d(TAG, "not sending censored notif: original notif is muted " +
+                    "with reason ineligible for forwarding");
+            return CensoredSendState.DONT_SEND;
         }
 
         // Check lock screen display settings.
@@ -9773,6 +9775,10 @@ public class NotificationManagerService extends SystemService {
                 if (DBG) Slog.d(TAG, "dndState is SEND_NORMAL");
                 if (record.getChannel().getImportance() == IMPORTANCE_LOW
                         || !record.isInterruptive()) {
+                    if (DBG) Slog.d(TAG, "using SEND_QUIET");
+                    return CensoredSendState.SEND_QUIET;
+                }
+                if (mostNoisyCensoredSendStateAllowed == CensoredSendState.SEND_QUIET) {
                     if (DBG) Slog.d(TAG, "using SEND_QUIET");
                     return CensoredSendState.SEND_QUIET;
                 }
