@@ -2028,7 +2028,8 @@ public class UserManagerService extends IUserManager.Stub {
             if (profile == null || !profile.isProfile()) {
                 throw new IllegalArgumentException("User " + userId + " is not a profile");
             }
-            if (profile.isQuietModeEnabled() == enableQuietMode) {
+            if (profile.isQuietModeEnabled() == enableQuietMode
+                    && !quietModeEnabledParams.alwaysLockImmediately()) {
                 Slog.i(LOG_TAG, "Quiet mode is already " + enableQuietMode);
                 return;
             }
