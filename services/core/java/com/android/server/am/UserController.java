@@ -1571,11 +1571,13 @@ class UserController implements Handler.Callback {
      */
     @GuardedBy("mLock")
     private @NonNull int[] getUsersToStopLU(@UserIdInt int userId) {
+        List<UserInfo> profilesToStop = new ArrayList<>();
         int startedUsersSize = mStartedUsers.size();
         IntArray userIds = new IntArray();
         userIds.add(userId);
         int userGroupId = mUserProfileGroupIds.get(userId, UserInfo.NO_PROFILE_GROUP_ID);
         if (userGroupId == userId) {
+            profilesToStop.addAll(mInjector.getUserManager().getProfiles(userId, false));
             // The user is the parent of the profile group. Stop its profiles too.
             for (int i = 0; i < startedUsersSize; i++) {
                 UserState uss = mStartedUsers.valueAt(i);
@@ -1587,10 +1589,24 @@ class UserController implements Handler.Callback {
                         && (userGroupId == startedUserGroupId);
                 // userId has already been added
                 boolean sameUserId = startedUserId == userId;
+                if (sameUserId) {
+                    profilesToStop.removeIf(ui -> ui != null && ui.id == startedUserId);
+                }
                 if (!sameGroup || sameUserId) {
                     continue;
                 }
                 userIds.add(startedUserId);
+                profilesToStop.removeIf(ui -> ui != null && ui.id == startedUserId);
+            }
+        }
+        for (final UserInfo profileUser: profilesToStop) {
+            final int profileUserId = profileUser.id;
+            try {
+                if (mInjector.getStorageManager().isCeStorageUnlocked(profileUserId)) {
+                    userIds.add(profileUserId);
+                }
+            } catch (RemoteException e) {
+                e.rethrowFromSystemServer();
             }
         }
         return userIds.toArray();
