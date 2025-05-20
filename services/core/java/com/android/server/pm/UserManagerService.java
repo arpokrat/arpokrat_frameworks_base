@@ -1000,19 +1000,6 @@ public class UserManagerService extends IUserManager.Stub {
                             && targetUser.isFull()) {
                         mUms.setLastEnteredForegroundTimeToNow(user);
                     }
-                    if (mUms.isAutoLockingPrivateSpaceOnRestartsEnabled()
-                            && targetUser.getUserIdentifier() != UserHandle.USER_SYSTEM
-                            && !user.info.isMain() && user.info.isFull()) {
-                        final int privateProfileUserId =
-                                mUms.getPrivateProfileUserId(targetUser.getUserIdentifier());
-                        if (privateProfileUserId != UserHandle.USER_NULL) {
-                            Slog.i(LOG_TAG, "Auto-locking private space with user-id "
-                                    + privateProfileUserId);
-                            mUms.setQuietModeEnabledAsync(privateProfileUserId,
-                                    /* enableQuietMode */true, /* target */ null,
-                                    mUms.mContext.getPackageName());
-                        }
-                    }
                 }
             }
         }
