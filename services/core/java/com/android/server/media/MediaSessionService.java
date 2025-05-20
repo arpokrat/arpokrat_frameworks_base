@@ -2575,9 +2575,11 @@ public class MediaSessionService extends SystemService implements Monitor {
                             + ". flags=" + flags + ", preferSuggestedStream="
                             + preferSuggestedStream + ", session=" + session);
                 }
-                if (musicOnly && !AudioSystem.isStreamActive(AudioManager.STREAM_MUSIC, 0)) {
+                if (musicOnly
+                        && !AudioSystem.isStreamActive(AudioManager.STREAM_VOICE_CALL, 0)
+                        && !AudioSystem.isStreamActive(AudioManager.STREAM_MUSIC, 0)) {
                     if (DEBUG_KEY_EVENT) {
-                        Log.d(TAG, "Nothing is playing on the music stream. Skipping volume event,"
+                        Log.d(TAG, "Nothing is playing. Skipping volume event,"
                                 + " flags=" + flags);
                     }
                     return;
