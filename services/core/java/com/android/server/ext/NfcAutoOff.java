@@ -46,7 +46,7 @@ class NfcAutoOff extends DelayedConditionalAction {
         IntentFilter f = new IntentFilter();
         f.addAction(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED);
 
-        sse.context.registerReceiver(new BroadcastReceiver() {
+        sse.context.registerReceiverForAllUsers(new BroadcastReceiver() {
             @Override
             public void onReceive(Context broadcastContext, Intent intent) {
                 Slog.d(TAG, "" + intent + ", extras " + intent.getExtras().deepCopy());
