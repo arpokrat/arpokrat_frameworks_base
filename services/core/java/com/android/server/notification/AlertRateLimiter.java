@@ -24,12 +24,24 @@ public class AlertRateLimiter {
     static final long ALLOWED_ALERT_INTERVAL = 1000;
     private long mLastNotificationMillis = 0;
 
-   boolean shouldRateLimitAlert(long now) {
+    boolean shouldRateLimitAlert(long now) {
+        boolean isRateLimited = isAlertRateLimited(now);
+        if (isRateLimited) {
+            return true;
+        }
+        mLastNotificationMillis = now;
+        return false;
+    }
+
+    boolean wasAlertRateLimited() {
+        return isAlertRateLimited(mLastNotificationMillis);
+    }
+
+    boolean isAlertRateLimited(long now) {
         final long millisSinceLast = now - mLastNotificationMillis;
         if (millisSinceLast < 0 || millisSinceLast < ALLOWED_ALERT_INTERVAL) {
             return true;
         }
-        mLastNotificationMillis = now;
         return false;
     }
 }
