@@ -13,7 +13,7 @@ public interface AppInfoExtFlag {
 
     /** @hide */
     @IntDef(value = {
-              HAS_GMSCORE_CLIENT_LIBRARY
+            HAS_GMSCORE_CLIENT_LIBRARY,
     })
     @Retention(RetentionPolicy.SOURCE)
     @interface Enum {}
