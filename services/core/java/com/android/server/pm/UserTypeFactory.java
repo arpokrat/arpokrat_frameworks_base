@@ -418,6 +418,7 @@ public final class UserTypeFactory {
         final Bundle restrictions = new Bundle();
         restrictions.putBoolean(UserManager.DISALLOW_OUTGOING_CALLS, true);
         restrictions.putBoolean(UserManager.DISALLOW_SMS, true);
+        restrictions.putBoolean(UserManager.DISALLOW_BLOCK_CALLS, true);
         return restrictions;
     }
 
