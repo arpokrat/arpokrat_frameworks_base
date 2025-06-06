@@ -1454,6 +1454,16 @@ public class UserManager {
     public static final String DISALLOW_RUN_IN_BACKGROUND = "no_run_in_background";
 
     /**
+     * Graphene OS Specific restriction
+     * Specifies if a user is not allowed to create and maintain a list of blocked numbers.
+     * The default value is <code>false</code>
+     *
+     * <p>This restriction can be set by the device owners and profile owners</p>
+     * {@link com.android.server.pm.UserRestrictionsUtils#}
+     */
+    public static final String DISALLOW_BLOCK_CALLS = "disallow_block_calls";
+    
+    /**
      * Specifies if a user is not allowed to use the camera.
      *
      * <p>A device owner and a profile owner can set this restriction. When it is set by a
@@ -2109,6 +2119,7 @@ public class UserManager {
             DISALLOW_WIFI_TETHERING,
             ENSURE_VERIFY_APPS,
             KEY_RESTRICTIONS_PENDING,
+            DISALLOW_BLOCK_CALLS
     })
     @Retention(RetentionPolicy.SOURCE)
     public @interface UserRestrictionKey {}
