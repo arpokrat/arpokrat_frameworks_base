@@ -7059,6 +7059,25 @@ public final class Settings {
         @Protected(read = KnownSystemPackage.SYSTEM_UI, readWrite = KnownSystemPackage.SETTINGS)
         public static final String SCREENSHOT_TIMESTAMP_EXIF = "screenshot_timestamp_exif";
 
+        /**
+         * Whether motion lock is enabled. When enabled, the device will lock when significant motion
+         * is detected. This setting is backed up and restored automatically as part of secure settings.
+         * 0 = disabled, 1 = enabled
+         * @hide
+         */
+        @Protected(read = KnownSystemPackage.SYSTEM_UI, readWrite = KnownSystemPackage.SETTINGS)
+        public static final String MOTION_LOCK_ENABLED = "motion_lock_enabled";
+
+        /**
+         * The sensitivity level for motion lock detection. This setting is backed up and restored
+         * automatically as part of secure settings.
+         * 0 = low sensitivity (15.0 m/s²)
+         * 1 = medium sensitivity (20.0 m/s²)
+         * 2 = high sensitivity (25.0 m/s²)
+         * @hide
+         */
+        @Protected(read = KnownSystemPackage.SYSTEM_UI, readWrite = KnownSystemPackage.SETTINGS)
+        public static final String MOTION_LOCK_SENSITIVITY = "motion_lock_sensitivity";
         /** @hide */
         @Protected(read = KnownSystemPackage.SYSTEM_UI, readWrite = KnownSystemPackage.SETTINGS)
         public static final String SCRAMBLE_PIN_LAYOUT_PRIMARY =

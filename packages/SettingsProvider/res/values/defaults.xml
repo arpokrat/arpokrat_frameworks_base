@@ -344,4 +344,9 @@
 
     <bool name="def_text_show_password">false</bool>
 
+    <!-- Default for Settings.Secure.MOTION_LOCK_ENABLED -->
+    <integer name="def_motion_lock_enabled">0</integer>
+    <!-- Default for Settings.Secure.MOTION_LOCK_SENSITIVITY -->
+    <integer name="def_motion_lock_sensitivity">1</integer>
+
 </resources>

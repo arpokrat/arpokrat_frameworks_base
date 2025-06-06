@@ -59,6 +59,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.hardware.SensorManager;
+import android.hardware.Sensor;
 import android.hardware.SystemSensorManager;
 import android.hardware.devicestate.DeviceState;
 import android.hardware.devicestate.DeviceStateManager;
@@ -143,6 +144,8 @@ import com.android.server.power.batterysaver.BatterySaverPolicy;
 import com.android.server.power.batterysaver.BatterySaverStateMachine;
 import com.android.server.power.batterysaver.BatterySavingStats;
 import com.android.server.power.feature.PowerManagerFlags;
+import com.android.server.power.MotionLock;
+
 
 import dalvik.annotation.optimization.NeverCompile;
 
@@ -348,6 +351,7 @@ public final class PowerManagerService extends SystemService
     private SettingsObserver mSettingsObserver;
     private DreamManagerInternal mDreamManager;
     private LogicalLight mAttentionLight;
+    private MotionLock mMotionLock;
 
     private final InattentiveSleepWarningController mInattentiveSleepWarningOverlayController;
     private final AmbientDisplaySuppressionController mAmbientDisplaySuppressionController;
@@ -1357,6 +1361,19 @@ public final class PowerManagerService extends SystemService
             mAttentionDetector.systemReady(mContext);
 
             SensorManager sensorManager = new SystemSensorManager(mContext, mHandler.getLooper());
+
+            // Initialize MotionLock after system services are ready
+            try {
+                Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+                if (accelerometer != null) {
+                    mMotionLock = new MotionLock(this, sensorManager, accelerometer);
+                    mMotionLock.startMonitoring();
+                } else {
+                    Slog.w(TAG, "No accelerometer sensor found, MotionLock disabled");
+                }
+            } catch (Exception e) {
+                Slog.e(TAG, "Failed to initialize MotionLock", e);
+            }
 
             // The notifier runs on the system server's main looper so as not to interfere
             // with the animations and other critical functions of the power manager.
@@ -4045,6 +4062,10 @@ public final class PowerManagerService extends SystemService
             } else {
                 throw new IllegalStateException("Too early to call shutdown() or reboot()");
             }
+        }
+        // Stop motion lock monitoring before shutdown/reboot
+        if (mMotionLock != null) {
+            mMotionLock.stopMonitoring();
         }
 
         Runnable runnable = new Runnable() {
