@@ -160,6 +160,7 @@ public final class NativeTombstoneManager {
         handleProtoTombstone(protoPath, isProtoFile, outProcessName);
 
         String protoProcessName = outProcessName[0];
+        String processName = "UNKNOWN";
         if (protoProcessName != null) {
             processName = protoProcessName;
         }
