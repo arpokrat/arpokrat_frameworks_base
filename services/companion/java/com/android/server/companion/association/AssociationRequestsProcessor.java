@@ -191,7 +191,7 @@ public class AssociationRequestsProcessor {
                 && !DEVICE_PROFILES_WITH_REQUIRED_CONFIRMATION.contains(request.getDeviceProfile())
                 && (shouldSkipAddRoleHolderCheck || !willAddRoleHolder(request, packageName, userId))) {
             // 2a.1. Create association right away.
-            createAssociationAndNotifyApplication(request, packageName, userId
+            createAssociationAndNotifyApplication(request, packageName, userId,
                     /* macAddress */ null, callback, /* resultReceiver */ null);
             return;
         }
