@@ -128,7 +128,7 @@ public class KeyguardSecurityViewFlipperController
             }
         }
 
-        asynchronouslyInflateView(securityMode, keyguardSecurityCallback);
+        asynchronouslyInflateView(securityMode, keyguardSecurityCallback, onViewInflatedCallback);
     }
 
     /**
