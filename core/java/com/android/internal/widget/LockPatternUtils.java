@@ -22,7 +22,6 @@ import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_NUMERIC;
 import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_NUMERIC_COMPLEX;
 import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_SOMETHING;
 import static android.app.admin.DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED;
-import static android.hardware.biometrics.BiometricSourceType.FINGERPRINT;
 import static android.security.Flags.shouldTrustManagerListenForPrimaryAuth;
 import static com.android.internal.widget.LockDomain.Primary;
 import static com.android.internal.widget.LockDomain.Secondary;
@@ -49,7 +48,6 @@ import android.content.Context;
 import android.content.pm.UserInfo;
 import android.hardware.input.InputManagerGlobal;
 import android.content.pm.UserProperties;
-import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -1124,7 +1122,7 @@ public class LockPatternUtils {
         DoThrow, DoNotThrow
     }
 
-    public boolean isCredentialSharableWithParent(int userHandle,
+    public boolean isCredentialShareableWithParent(int userHandle,
             ThrowIfUserNotExist throwIfUserNotExist) {
         UserProperties props;
         try {
@@ -1169,7 +1167,7 @@ public class LockPatternUtils {
 
         boolean sharable;
         try {
-            sharable = isCredentialSharableWithParent(userId, DoThrow);
+            sharable = isCredentialShareableWithParent(userId, DoThrow);
         } catch (IllegalArgumentException e) {
             return false;
         }
