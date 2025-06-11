@@ -43,7 +43,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
-
+import kotlinx.coroutines.channels.awaitClose
 /**
  * Business logic for device entry haptic events. Determines whether the haptic should play. In
  * particular, there are extra guards for whether device entry error and successes haptics should

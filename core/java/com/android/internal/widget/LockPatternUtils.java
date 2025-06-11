@@ -1124,7 +1124,7 @@ public class LockPatternUtils {
         DoThrow, DoNotThrow
     }
 
-    public boolean isCredentialSharableWithParent(int userHandle,
+    public boolean isCredentialShareableWithParent(int userHandle,
             ThrowIfUserNotExist throwIfUserNotExist) {
         UserProperties props;
         try {
@@ -1169,7 +1169,7 @@ public class LockPatternUtils {
 
         boolean sharable;
         try {
-            sharable = isCredentialSharableWithParent(userId, DoThrow);
+            sharable = isCredentialShareableWithParent(userId, DoThrow);
         } catch (IllegalArgumentException e) {
             return false;
         }

@@ -1062,7 +1062,7 @@ public class UserManagerService extends IUserManager.Stub {
                         && user.info.id != UserHandle.USER_SYSTEM
                         && !user.info.isMain() && user.info.isFull()) {
                     final int privateProfileUserId =
-                            mUms.getPrivateProfileUserId(user.info.id);
+                            mUms.getPrivateProfileUserId();
                     if (privateProfileUserId != UserHandle.USER_NULL) {
                         Slog.i(LOG_TAG, "Auto-locking private space with user-id "
                                 + privateProfileUserId + " reason: " + reason);

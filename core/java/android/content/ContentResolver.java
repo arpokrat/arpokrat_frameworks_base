@@ -2781,7 +2781,7 @@ public abstract class ContentResolver implements ContentInterface {
         }
 
         try {
-            getContentService().registerContentObserver(uri, notifyForDescendants,
+            getContentService().registerContentObserver(uri, notifyForDescendents,
                     observer.getContentObserver(), userHandle, mTargetSdkVersion);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();

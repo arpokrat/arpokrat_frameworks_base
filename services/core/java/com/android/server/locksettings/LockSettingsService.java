@@ -2074,13 +2074,12 @@ public class LockSettingsService extends ILockSettings.Stub {
 
             if (lockDomain == Primary) {
                 onSyntheticPasswordUnlocked(userId, sp);
-            if (android.security.Flags.clearStrongAuthOnAddingPrimaryCredential()
             } else {
                 sp = mSpManager.newSyntheticPassword(userId, Secondary);
             }
             setLockCredentialWithSpLocked(credential, lockDomain, sp, userId);
             if (lockDomain == Primary
-                    && android.security.Flags.clearStrongAuthOnAddPrimaryCredential()
+                    && android.security.Flags.clearStrongAuthOnAddingPrimaryCredential()
                     && savedCredential.isNone() && !credential.isNone()) {
                 // Clear the strong auth value, since the LSKF has just been entered and set,
                 // but only when the previous credential was None.
@@ -2178,7 +2177,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     // TODO: MODIFIED DURING GRAPHENE PORT AND NEEDS REVIEW. Upstream's implementation might be better. Look to see if
     // we should switch to it.
     private boolean isCredentialShareableWithParent(int userId) {
-        return mLockPatternUtils.isCredentialSharableWithParent(userId, DoNotThrow);
+        return mLockPatternUtils.isCredentialShareableWithParent(userId, DoNotThrow);
     }
 
     /** Register the given WeakEscrowTokenRemovedListener. */

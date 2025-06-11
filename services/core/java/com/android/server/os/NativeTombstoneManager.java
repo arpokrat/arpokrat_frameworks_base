@@ -156,6 +156,7 @@ public final class NativeTombstoneManager {
 
         File protoPath = isProtoFile ? path : new File(path.getAbsolutePath() + ".pb");
 
+        String processName = "UNKNOWN";
         String[] outProcessName = new String[1];
         handleProtoTombstone(protoPath, isProtoFile, outProcessName);
 

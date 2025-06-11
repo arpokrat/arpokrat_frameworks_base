@@ -102,6 +102,7 @@ constructor(
                     is AuthenticationMethodModel.Pattern -> Cuj.CUJ_LOCKSCREEN_PATTERN_APPEAR
                     is AuthenticationMethodModel.Password -> Cuj.CUJ_LOCKSCREEN_PASSWORD_APPEAR
                     is AuthenticationMethodModel.None -> null
+                    is AuthenticationMethodModel.BiometricSecondFactorPin -> null
                     null -> null
                 }
             from == Overlays.Bouncer && isDeviceUnlocked ->
@@ -111,6 +112,7 @@ constructor(
                     is AuthenticationMethodModel.Pattern -> Cuj.CUJ_LOCKSCREEN_PATTERN_DISAPPEAR
                     is AuthenticationMethodModel.Password -> Cuj.CUJ_LOCKSCREEN_PASSWORD_DISAPPEAR
                     is AuthenticationMethodModel.None -> null
+                    is AuthenticationMethodModel.BiometricSecondFactorPin -> null
                     null -> null
                 }
             else -> null
