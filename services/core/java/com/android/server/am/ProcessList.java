@@ -2608,7 +2608,7 @@ public final class ProcessList {
                         app.info.dataDir, app.info.packageName, isTopApp,
                         app.getDisabledCompatChanges(), pkgDataInfoMap,
                         allowlistedAppDataInfoMap,
-                        new String[]{PROC_START_SEQ_IDENT + app.getStartSeq()}, null);
+                        new String[]{PROC_START_SEQ_IDENT + app.getStartSeq()}, flatExtraArgs);
             } else {
                 regularZygote = true;
                 startResult = Process.start(entryPoint,
