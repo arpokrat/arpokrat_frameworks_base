@@ -370,20 +370,21 @@ public class AuthenticationPolicyServiceTest {
     public void testReportAuthAttempt_primaryAuthAndBiometricAuthFailed_primaryUser_deviceLockEnabled(
             LockDomain lockDomain) throws RemoteException {
         testReportAuthAttempt_primaryAuthAndBiometricAuthFailed_primaryUser(
-                true /* enabled */);
+                true /* enabled */, lockDomain);
     }
 
     @Test
     @EnableFlags({android.security.Flags.FLAG_DISABLE_ADAPTIVE_AUTH_COUNTER_LOCK})
-    public void testReportAuthAttempt_primaryAuthAndBiometricAuthFailed_primaryUser_deviceLockDisabled()
-            throws RemoteException {
+    @Parameters({ "Primary", "Secondary" })
+    public void testReportAuthAttempt_primaryAuthAndBiometricAuthFailed_primaryUser_deviceLockDisabled(
+            LockDomain lockDomain) throws RemoteException {
         toggleAdaptiveAuthSettingsOverride(PRIMARY_USER_ID, true /* disabled */);
         testReportAuthAttempt_primaryAuthAndBiometricAuthFailed_primaryUser(
-                false /* enabled */);
+                false /* enabled */, lockDomain);
     }
 
     private void testReportAuthAttempt_primaryAuthAndBiometricAuthFailed_primaryUser(
-            boolean enabled) throws RemoteException {
+            boolean enabled, LockDomain lockDomain) throws RemoteException {
         // Three failed primary auth attempts
         for (int i = 0; i < 3; i++) {
             mLockSettingsStateListenerCaptor.getValue().onAuthenticationFailed(PRIMARY_USER_ID,
