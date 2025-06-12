@@ -202,7 +202,8 @@ public class BiometricsUnlockControllerTest extends SysuiTestCase {
         mBiometricUnlockController.onBiometricAuthenticated(UserHandle.USER_CURRENT,
                 BiometricSourceType.FINGERPRINT, true, Enabled);
 
-        verify(mStatusBarKeyguardViewManager).showPrimaryBouncer(anyBoolean());
+        verify(mStatusBarKeyguardViewManager).showPrimaryBouncer(anyBoolean(),
+                "BiometricUnlockController#MODE_SHOW_BOUNCER");
         verify(mStatusBarKeyguardViewManager, never()).notifyKeyguardAuthenticated(anyBoolean());
         assertThat(mBiometricUnlockController.getMode())
                 .isEqualTo(BiometricUnlockController.MODE_SHOW_BOUNCER);
@@ -227,7 +228,8 @@ public class BiometricsUnlockControllerTest extends SysuiTestCase {
         mBiometricUnlockController.onBiometricAuthenticated(UserHandle.USER_CURRENT,
                 BiometricSourceType.FINGERPRINT, true, Enabled);
 
-        verify(mStatusBarKeyguardViewManager).showPrimaryBouncer(anyBoolean());
+        verify(mStatusBarKeyguardViewManager).showPrimaryBouncer(anyBoolean(),
+                "BiometricUnlockController#MODE_SHOW_BOUNCER");
         verify(mStatusBarKeyguardViewManager, never()).notifyKeyguardAuthenticated(anyBoolean());
         assertThat(mBiometricUnlockController.getMode())
                 .isEqualTo(BiometricUnlockController.MODE_SHOW_BOUNCER);
