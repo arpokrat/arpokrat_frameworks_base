@@ -103,7 +103,7 @@ public class LockPatternUtilsTest {
         when(context.getContentResolver()).thenReturn(cr);
         Settings.Global.putInt(cr, Settings.Global.DEVICE_DEMO_MODE, deviceDemoMode);
 
-        when(mLockSettings.getCredentialType(DEMO_USER_ID)).thenReturn(
+        when(mLockSettings.getCredentialType(DEMO_USER_ID, LockDomain.Primary)).thenReturn(
                 isSecure ? LockPatternUtils.CREDENTIAL_TYPE_PASSWORD
                          : LockPatternUtils.CREDENTIAL_TYPE_NONE);
         when(mLockSettings.getLong("lockscreen.password_type", PASSWORD_QUALITY_UNSPECIFIED,
