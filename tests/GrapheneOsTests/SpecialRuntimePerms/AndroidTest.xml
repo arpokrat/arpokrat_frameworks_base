@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration description="Config for GrapheneOS special runtime permissions test cases">
+    <target_preparer class="com.android.tradefed.targetprep.DeviceSetup">
+        <option name="force-skip-system-props" value="true" />
+        <option name="set-global-setting" key="verifier_engprod" value="1" />
+        <option name="set-global-setting" key="verifier_verify_adb_installs" value="0" />
+        <option name="restore-settings" value="true" />
+        <option name="set-global-setting" key="unused_static_shared_lib_min_cache_period" value="0" />
+        <option name="set-system-setting" key="notification_cooldown_enabled" value="0" />
+        <option name="enable-testing-secondary-user-on-secondary-display" value="true" />
+    </target_preparer>
+
+    <target_preparer class="com.android.tradefed.targetprep.suite.SuiteApkInstaller">
+        <option name="cleanup-apks" value="true" />
+        <option name="install-arg" value="-r" />
+        <option name="test-file-name" value="SpecialRuntimePermsTestCases.apk" />
+    </target_preparer>
+
+    <test class="com.android.tradefed.testtype.AndroidJUnitTest" >
+        <option name="package" value="grapheneos.srtpermtests" />
+        <option name="runtime-hint" value="1m" />
+    <!--  <option name="runner" value="androidx.test.runner.AndroidJUnitRunner" /> -->
+       <option name="hidden-api-checks" value="false" />
+    </test>
+    <!-- Create place to store apks -->
+    <target_preparer class="com.android.tradefed.targetprep.RunCommandTargetPreparer">
+        <option name="run-command" value="mkdir -p /data/local/tmp/cts/uninstall" />
+        <option name="teardown-command" value="rm -rf /data/local/tmp/cts"/>
+        <!-- Ensure the UI is ready and in an idle state before running tests -->
+        <option name="run-command" value="settings put global device_provisioned 1" />
+        <option name="run-command" value="settings put secure user_setup_complete 1" />
+        <option name="run-command" value="input keyevent KEYCODE_WAKEUP" />
+        <option name="run-command" value="wm dismiss-keyguard" />
+        <!-- Collapse notifications -->
+        <option name="run-command" value="cmd statusbar collapse" />
+        <!-- dismiss all system dialogs before launch test -->
+        <option name="run-command" value="am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS" />
+
+        <option name="run-command" value="pm uninstall com.android.cts.install.lib.testapp.A" />
+        <option name="run-command" value="pm uninstall com.android.cts.install.lib.testapp.B" />
+        <option name="run-command" value="pm uninstall com.android.cts.install.lib.testapp.C" />
+        <option name="teardown-command" value="pm uninstall com.android.cts.install.lib.testapp.A" />
+        <option name="teardown-command" value="pm uninstall com.android.cts.install.lib.testapp.B" />
+        <option name="teardown-command" value="pm uninstall com.android.cts.install.lib.testapp.C" />
+    </target_preparer>
+
+    <!-- Load additional APKs onto device -->
+    <target_preparer class="com.android.compatibility.common.tradefed.targetprep.FilePusher">
+        <option name="cleanup" value="true" />
+        <option name="push" value="GosHelloWorldAppV1.apk->/data/local/tmp/cts/uninstall/GosHelloWorldAppV1.apk" />
+        <option name="push" value="GosHelloWorldAppV2.apk->/data/local/tmp/cts/uninstall/GosHelloWorldAppV2.apk" />
+        <option name="push" value="GosAppThatAccessesInternetOnCommand.apk->/data/local/tmp/cts/uninstall/GosAppThatAccessesInternetOnCommand.apk" />
+    </target_preparer>
+
+    <target_preparer class="com.android.tradefed.targetprep.RootTargetPreparer">
+        <option name="force-root" value="false" />
+    </target_preparer>
+</configuration>

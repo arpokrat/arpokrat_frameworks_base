@@ -1,0 +1,17 @@
+android_test_helper_app {
+    name: "GosAppThatAccessesInternetOnCommand",
+    defaults: [
+        "cts_defaults",
+        "mts-target-sdk-version-current",
+    ],
+    static_libs: [
+        "kotlinx_coroutines",
+    ],
+    sdk_version: "current",
+    min_sdk_version: "30",
+    srcs: [
+        "src/**/*.java",
+        "src/**/*.aidl",
+        "src/**/*.kt",
+    ],
+}
