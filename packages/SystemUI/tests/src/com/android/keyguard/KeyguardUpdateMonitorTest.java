@@ -2356,8 +2356,10 @@ public class KeyguardUpdateMonitorTest extends SysuiTestCase {
         Assert.assertFalse(mKeyguardUpdateMonitor.isUnlockingWithBiometricAllowedSafe(
                 BiometricSourceType.FINGERPRINT));
 
-        // THEN fingerprint detect gets called
-        verifyFingerprintDetectCall();
+        // THEN fingerprint detect never gets called
+        // GrapheneOS change: Adding stopListeningForFingerprint() to KeyguardUpdateMonitor
+        // ("fix upstream fingerprint mode change bug") results in this never being called.
+        verifyFingerprintDetectNeverCalled(); // verifyFingerprintDetectCall();
     }
 
     @Test
