@@ -531,7 +531,11 @@ public class GnssConfiguration {
                 break;
             case GnssSettings.SUPL_DISABLED:
                 Slog.d(TAG, "SUPL is disabled");
+                // SUPL mode is a bitmask, see
+                // hardware/interfaces/gnss/aidl/android/hardware/gnss/IGnssConfiguration.aidl
                 props.setProperty(CONFIG_SUPL_MODE, "0");
+                props.remove(CONFIG_SUPL_HOST);
+                props.remove(CONFIG_SUPL_PORT);
                 break;
             case GnssSettings.SUPL_SERVER_GRAPHENEOS_PROXY:
                 Slog.d(TAG, "SUPL: using the GrapheneOS proxy");
