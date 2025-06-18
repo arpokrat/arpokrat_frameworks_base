@@ -356,6 +356,13 @@ public class ParsingPackageUtils {
         if ((flags & PARSE_APEX) != 0) {
             liteParseFlags |= PARSE_APEX;
         }
+        // For some reason, upstream doesn't add the PARSE_IS_SYSTEM_DIR flag if it was there.
+        // The only thing PARSE_IS_SYSTEM_DIR is checked in ApkLiteParseUtils is behind a
+        // PARSE_COLLECT_CERTIFICATES check, which won't get triggered by this code path since
+        // PARSE_COLLECT_CERTIFICATES is also ignored for liteParseFlags
+        if ((flags & PARSE_IS_SYSTEM_DIR) != 0) {
+            liteParseFlags |= PARSE_IS_SYSTEM_DIR;
+        }
         final ParseResult<PackageLite> liteResult =
                 ApkLiteParseUtils.parseClusterPackageLite(input, packageDir, liteParseFlags);
         if (liteResult.isError()) {
