@@ -797,8 +797,7 @@ public class ApkLiteParseUtils {
 
                 final String pkgName = packageSplit.first;
                 ParseResult<Integer> minResult = FrameworkParsingPackageUtils.computeMinSdkVersion(
-                        minVer, minCode, SDK_VERSION, SDK_CODENAMES, input, pkgName,
-                        (flags & PARSE_IS_SYSTEM_DIR) != 0);
+                        minVer, minCode, SDK_VERSION, SDK_CODENAMES, input, pkgName);
                 if (minResult.isError()) {
                     return input.error(minResult);
                 }
