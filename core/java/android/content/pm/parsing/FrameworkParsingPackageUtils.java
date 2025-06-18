@@ -297,11 +297,29 @@ public class FrameworkParsingPackageUtils {
      */
     public static ParseResult<Integer> computeMinSdkVersion(@IntRange(from = 1) int minVers,
             @Nullable String minCode, @IntRange(from = 1) int platformSdkVersion,
-            @NonNull String[] platformSdkCodenames, @NonNull ParseInput input) {
+            @NonNull String[] platformSdkCodenames, @NonNull ParseInput input,
+            @Nullable String packageName, boolean isSystemDir) {
         // If it's a release SDK, make sure we meet the minimum SDK requirement.
         if (minCode == null) {
             if (minVers <= platformSdkVersion) {
                 return input.success(minVers);
+            }
+
+            if ("com.samsung.slsi.telephony.oemril".equals(packageName) ||
+                    "com.samsung.slsi.telephony.oem.oemrilhookservice".equals(packageName) ||
+                    "com.shannon.imsservice".equals(packageName) ||
+                    "com.shannon.rcsservice".equals(packageName) || // might not be needed
+                    "com.google.android.rilextension".equals(packageName)) {
+                if (isSystemDir) {
+                    Slog.d(TAG, "setting minSdk of " + packageName + " from " + minVers + " to "
+                            + platformSdkVersion);
+                    // 15-qpr2: Backporting from Android 16 requires us to change minSdkVersion to
+                    // current
+                    return input.success(platformSdkVersion);
+                } else {
+                    Slog.w(TAG, "didn't set minSdk of " + packageName + " from " + minVers + " to "
+                            + platformSdkVersion + ", because not from system dir");
+                }
             }
 
             // We don't meet the minimum SDK requirement.

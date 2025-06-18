@@ -1803,7 +1803,8 @@ public class ParsingPackageUtils {
                 }
 
                 ParseResult<Integer> minSdkVersionResult = FrameworkParsingPackageUtils
-                        .computeMinSdkVersion(minVers, minCode, SDK_VERSION, SDK_CODENAMES, input);
+                        .computeMinSdkVersion(minVers, minCode, SDK_VERSION, SDK_CODENAMES, input,
+                                pkg.getPackageName(), (flags & PARSE_IS_SYSTEM_DIR) != 0);
                 if (minSdkVersionResult.isError()) {
                     return input.error(minSdkVersionResult);
                 }
