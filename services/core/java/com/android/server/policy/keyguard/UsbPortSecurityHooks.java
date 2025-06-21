@@ -9,21 +9,21 @@ import android.ext.settings.UsbPortSecurity;
 import android.hardware.usb.UsbManager;
 import android.hardware.usb.UsbPort;
 import android.hardware.usb.UsbPortStatus;
-import android.os.Bundle;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.ResultReceiver;
+import android.os.Process;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.util.Log;
 import android.util.Slog;
 
 import com.android.internal.R;
-import com.android.internal.infra.AndroidFuture;
 import com.android.server.ext.SystemErrorNotification;
+import com.android.server.utils.Slogf;
 
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 public class UsbPortSecurityHooks {
     private static final String TAG = UsbPortSecurityHooks.class.getSimpleName();
@@ -56,12 +56,30 @@ public class UsbPortSecurityHooks {
         return res;
     }
 
+    private void onBootCompleted() {
+        int initialMode = UsbPortSecurity.MODE_SETTING.get();
+        Slogf.d(TAG, "initial value of persist.security.usb_mode: %d", initialMode);
+
+        switch (initialMode) {
+            case UsbPortSecurity.MODE_CHARGING_ONLY:
+            case UsbPortSecurity.MODE_CHARGING_ONLY_WHEN_LOCKED:
+                setSecurityStateForAllPorts(PortSecurityState.CHARGING_ONLY_IMMEDIATE);
+                break;
+            case UsbPortSecurity.MODE_CHARGING_ONLY_WHEN_LOCKED_AFU:
+            case UsbPortSecurity.MODE_ENABLED:
+                setSecurityStateForAllPorts(PortSecurityState.PORTS_ENABLED);
+                break;
+        }
+    }
+
     public static void init(Context ctx) {
         if (!isSupported(ctx)) {
             return;
         }
 
         var i = new UsbPortSecurityHooks(ctx);
+        i.onBootCompleted();
+
         synchronized (pendingCallbacks) {
             INSTANCE = i;
             for (Runnable cb : pendingCallbacks) {
@@ -136,7 +154,7 @@ public class UsbPortSecurityHooks {
               || (keyguardDismissedAtLeastOnce && setting == UsbPortSecurity.MODE_CHARGING_ONLY_WHEN_LOCKED_AFU))
         {
             if (showing) {
-                setSecurityStateForAllPorts(android.hardware.usb.ext.PortSecurityState.CHARGING_ONLY);
+                setSecurityStateForAllPorts(PortSecurityState.CHARGING_ONLY);
                 usbConnectEventCountBeforeLocked = usbConnectEventCount;
             } else {
                 boolean forceReconnect = false;
@@ -154,18 +172,18 @@ public class UsbPortSecurityHooks {
                 }
 
                 if (!forceReconnect && usbConnectEventCountBeforeLocked == usbConnectEventCount) {
-                    setSecurityStateForAllPorts(android.hardware.usb.ext.PortSecurityState.ENABLED);
+                    setSecurityStateForAllPorts(PortSecurityState.PORTS_ENABLED);
                 } else {
                     // Turn USB ports off and on to trigger reconnection of devices that were connected
                     // in charging-only state. Simply enabling the data path is not enough in some
                     // advanced scenarios, e.g. when port alt mode or port role switching are used.
                     Slog.d(TAG, "toggling USB ports");
-                    setSecurityStateForAllPorts(android.hardware.usb.ext.PortSecurityState.DISABLED);
+                    setSecurityStateForAllPorts(PortSecurityState.PORTS_DISABLED);
                     final long curShowingChangeCount = keyguardShowingChangeCount;
                     final long delayMs = 1500;
                     handler.postDelayed(() -> {
                         if (keyguardShowingChangeCount == curShowingChangeCount) {
-                            setSecurityStateForAllPorts(android.hardware.usb.ext.PortSecurityState.ENABLED);
+                            setSecurityStateForAllPorts(PortSecurityState.PORTS_ENABLED);
                         } else {
                             Slog.d(TAG, "showingChangeCount changed, skipping delayed enable");
                         }
@@ -179,26 +197,99 @@ public class UsbPortSecurityHooks {
         }
     }
 
-    private void setSecurityStateForAllPorts(int state) {
+    private interface PortSecurityState {
+        // disable all ports
+        String PORTS_DISABLED = "ports_disabled";
+        // immediately disables USB data path and disables alt modes on subsequent connections
+        String CHARGING_ONLY_IMMEDIATE = "charging-only_immediate";
+        // applies after port disconnect if it's currently connected
+        String CHARGING_ONLY = "charging-only";
+        String PORTS_ENABLED = "ports_enabled";
+    }
+
+    private void setSecurityStateForAllPorts(String state) {
         Slog.d(TAG, "setSecurityStateForAllPorts: " + state);
 
-        var resultFuture = new AndroidFuture();
-        var resultReceiver = new ResultReceiver(null) {
-            @Override
-            protected void onReceiveResult(int resultCode, Bundle resultData) {
-                // ignore resultCode, USB port security API implementation shows error notifications
-                // itself
-                resultFuture.complete(null);
-            }
+        setDenyNewUsb2(!state.equals(PortSecurityState.PORTS_ENABLED));
+
+        try {
+            SystemProperties.set("sys.port_security_mode", state);
+        } catch (RuntimeException e) {
+            showErrorNotif(Log.getStackTraceString(e));
+        }
+    }
+
+    private void setDenyNewUsb2(boolean enabled) {
+        String prop = "security.deny_new_usb2";
+        String val = enabled ? "1" : "0";
+        try {
+            SystemProperties.set(prop, val);
+            Slog.d(TAG, "set " + prop + " to " + val);
+        } catch (RuntimeException e) {
+            String msg = "unable to set " + prop + " to " + val + ":\n" + Log.getStackTraceString(e);
+            showErrorNotif(msg);
+        }
+    }
+
+    public static void updateSetting(int newValue) {
+        int callingUid = Binder.getCallingUid();
+        if (callingUid != Process.SYSTEM_UID && callingUid != Process.SHELL_UID) {
+            throw new SecurityException("only system and shell are allowed to call updatePortSecuritySetting()");
+        }
+
+        Slogf.d(TAG, "updateSetting: %d", newValue);
+
+        UsbPortSecurityHooks instance = INSTANCE;
+        if (instance == null) {
+            throw new IllegalStateException("no UsbPortSecurityHooks instance");
+        }
+
+        if (!Boolean.FALSE.equals(instance.prevKeyguardShowing)) {
+            // not strictly necessary, but allows to simplify the logic in code that changes port
+            // security state below
+            throw new SecurityException("keyguard has to be dismissed before calling this method");
+        }
+
+        int prevValue = UsbPortSecurity.MODE_SETTING.get();
+
+        UsbPortSecurity.MODE_SETTING.put(newValue);
+
+        boolean delayStateUpdate = false;
+
+        if (prevValue == UsbPortSecurity.MODE_CHARGING_ONLY && newValue >= UsbPortSecurity.MODE_CHARGING_ONLY_WHEN_LOCKED) {
+            // Turn USB ports off first to trigger reconnection of devices that were connected
+            // in charging-only state. Simply enabling the data path is not enough in some
+            // advanced scenarios, e.g. when port alt mode or port role switching are used.
+            instance.setSecurityStateForAllPorts(PortSecurityState.PORTS_DISABLED);
+            delayStateUpdate = true;
+        }
+
+        String state = switch (newValue) {
+            case UsbPortSecurity.MODE_DISABLED ->
+                    PortSecurityState.PORTS_DISABLED;
+            case UsbPortSecurity.MODE_CHARGING_ONLY ->
+                    PortSecurityState.CHARGING_ONLY_IMMEDIATE;
+            case UsbPortSecurity.MODE_CHARGING_ONLY_WHEN_LOCKED,
+                 UsbPortSecurity.MODE_CHARGING_ONLY_WHEN_LOCKED_AFU,
+                 UsbPortSecurity.MODE_ENABLED ->
+                    PortSecurityState.PORTS_ENABLED;
+            default -> throw new IllegalArgumentException(Integer.toString(newValue));
         };
 
-        usbManager.setSecurityStateForAllPorts(state, resultReceiver);
-
-        // wait for the result callback to avoid potential race conditions
-        try {
-            resultFuture.get(5, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            showErrorNotif(Log.getStackTraceString(e));
+        if (delayStateUpdate) {
+            final long curShowingChangeCount = instance.keyguardShowingChangeCount;
+            // it's hard to setup a proper callback to avoid this hardcoded delay, would need to
+            // modify init and kernel
+            final long delayMs = 1500;
+            instance.handler.postDelayed(() -> {
+                if (instance.keyguardShowingChangeCount == curShowingChangeCount) {
+                    instance.setSecurityStateForAllPorts(state);
+                } else {
+                    Slog.d(TAG, "updateSetting: showingChangeCount changed, skipping delayed state change");
+                }
+            }, delayMs);
+        } else {
+            instance.setSecurityStateForAllPorts(state);
         }
     }
 
