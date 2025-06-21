@@ -974,6 +974,11 @@ public class UsbService extends IUsbManager.Stub {
             Binder.getCallingUid(), false);
     }
 
+    @Override
+    public void updatePortSecuritySetting(int newValue) {
+        com.android.server.policy.keyguard.UsbPortSecurityHooks.updateSetting(newValue);
+    }
+
     /**
      *  Manages the enablement of USB data. Requester field could mean two things:
      *  1. UID of the app that requested USB data to be disabled if caller is external.
