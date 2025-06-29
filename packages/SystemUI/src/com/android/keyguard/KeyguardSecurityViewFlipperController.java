@@ -147,7 +147,9 @@ public class KeyguardSecurityViewFlipperController
             callbacks.addLast(onViewInflatedListener);
             return;
         } else {
-            mInflationCallbacks.put(securityMode, new ArrayList<>());
+            ArrayList<OnViewInflatedCallback> callbacks = new ArrayList<>();
+            callbacks.add(onViewInflatedListener);
+            mInflationCallbacks.put(securityMode, callbacks);
         }
 
         int layoutId = mFeatureFlags.isEnabled(LOCKSCREEN_ENABLE_LANDSCAPE)
