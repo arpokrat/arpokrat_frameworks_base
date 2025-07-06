@@ -3253,7 +3253,7 @@ public class InputMethodService extends AbstractInputMethodService {
      *  back dispatching is enabled. We keep the {@link KeyEvent#KEYCODE_BACK} based legacy code
      *  around to handle back on older devices.
      */
-    public void registerDefaultOnBackInvokedCallback() {
+    private void registerDefaultOnBackInvokedCallback() {
         if (mBackCallbackRegistered) {
             return;
         }
