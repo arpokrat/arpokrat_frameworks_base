@@ -913,8 +913,10 @@ public class InputMethodService extends AbstractInputMethodService {
             // {@link #restartInput(InputConnection, EditorInfo)}.
             mImeDispatcher = params.imeDispatcher;
             if (mWindow != null) {
-                mWindow.getOnBackInvokedDispatcher().setImeOnBackInvokedDispatcher(
-                        params.imeDispatcher);
+                mWindow.getOnBackInvokedDispatcher().setImeOnBackInvokedDispatcher(mImeDispatcher);
+                if (mDecorViewVisible && mShowInputRequested) {
+                    registerDefaultOnBackInvokedCallback();
+                }
             }
         }
 
@@ -3251,7 +3253,7 @@ public class InputMethodService extends AbstractInputMethodService {
      *  back dispatching is enabled. We keep the {@link KeyEvent#KEYCODE_BACK} based legacy code
      *  around to handle back on older devices.
      */
-    private void registerDefaultOnBackInvokedCallback() {
+    public void registerDefaultOnBackInvokedCallback() {
         if (mBackCallbackRegistered) {
             return;
         }
@@ -3526,10 +3528,6 @@ public class InputMethodService extends AbstractInputMethodService {
                 mInlineSuggestionSessionController.notifyOnStartInputView();
                 onStartInputView(mInputEditorInfo, restarting);
                 startExtractingText(true);
-                // Back callback is typically registered in {@link #showWindow()}, but it's possible
-                // for {@link #doStartInput()} to be called without {@link #showWindow()} so we also
-                // register here.
-                registerDefaultOnBackInvokedCallback();
             } else if (mCandidatesVisibility == View.VISIBLE) {
                 if (DEBUG) Log.v(TAG, "CALL: onStartCandidatesView");
                 mCandidatesViewStarted = true;
