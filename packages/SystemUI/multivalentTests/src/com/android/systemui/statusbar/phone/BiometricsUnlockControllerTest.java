@@ -412,7 +412,7 @@ public class BiometricsUnlockControllerTest extends SysuiTestCase {
     public void onBiometricAuthenticated_whenFaceOnBouncerAndDreaming_dismissKeyguard() {
         when(mUpdateMonitor.isDeviceInteractive()).thenReturn(true);
         when(mUpdateMonitor.isDreaming()).thenReturn(true);
-        when(mUpdateMonitor.isUnlockingWithBiometricAllowed(anyBoolean())).thenReturn(true);
+        when(mUpdateMonitor.isUnlockingWithBiometricAllowedSafe(anyBoolean())).thenReturn(true);
         when(mStatusBarKeyguardViewManager.primaryBouncerIsOrWillBeShowing()).thenReturn(true);
         // the value of isStrongBiometric doesn't matter here since we only care about the returned
         // value of isUnlockingWithBiometricAllowed()
