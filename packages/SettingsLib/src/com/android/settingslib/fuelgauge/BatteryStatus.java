@@ -59,6 +59,8 @@ public class BatteryStatus {
     public final int maxChargingWattage;
     public final boolean present;
     public final Optional<Boolean> incompatibleCharger;
+    /** Added in July update, might conflict */
+    public final int health;
 
     public static BatteryStatus create(Context context, boolean incompatibleCharger) {
         final Intent batteryChangedIntent = BatteryUtils.getBatteryIntent(context);
@@ -75,6 +77,7 @@ public class BatteryStatus {
         this.maxChargingWattage = maxChargingWattage;
         this.present = present;
         this.incompatibleCharger = Optional.empty();
+        this.health = BatteryManager.BATTERY_HEALTH_UNKNOWN;
     }
 
 
@@ -90,6 +93,8 @@ public class BatteryStatus {
         status = batteryChangedIntent.getIntExtra(EXTRA_STATUS, BATTERY_STATUS_UNKNOWN);
         plugged = batteryChangedIntent.getIntExtra(EXTRA_PLUGGED, 0);
         level = getBatteryLevel(batteryChangedIntent);
+        health = batteryChangedIntent.getIntExtra(
+                BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN);
         chargingStatus = batteryChangedIntent.getIntExtra(EXTRA_CHARGING_STATUS,
                 CHARGING_POLICY_DEFAULT);
         present = batteryChangedIntent.getBooleanExtra(EXTRA_PRESENT, true);
