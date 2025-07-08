@@ -252,7 +252,6 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
 
     @Test
     fun testOnViewAttached_secondaryWithAutoPinConfirmationFailedPasswordAttemptsLessThan5() {
-        `when`(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
         `when`(lockPatternUtils.getPinLength(anyInt(), eq(Secondary))).thenReturn(6)
         `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), eq(Secondary))).thenReturn(true)
         `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt(), eq(Secondary)))
@@ -287,7 +286,6 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
 
     @Test
     fun testOnViewAttached_secondaryWithAutoPinConfirmationFailedPasswordAttemptsMoreThan5() {
-        `when`(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
         `when`(lockPatternUtils.getPinLength(anyInt(), eq(Secondary))).thenReturn(6)
         `when`(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), eq(Secondary))).thenReturn(true)
         `when`(lockPatternUtils.getCurrentFailedPasswordAttempts(anyInt(), eq(Secondary)))
@@ -342,7 +340,6 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
 
     @Test
     fun onUserInput_secondaryAutoConfirmation_attemptsUnlock() {
-        whenever(featureFlags.isEnabled(Flags.AUTO_PIN_CONFIRMATION)).thenReturn(true)
         whenever(lockPatternUtils.getPinLength(anyInt(), eq(Secondary))).thenReturn(6)
         whenever(lockPatternUtils.isAutoPinConfirmEnabled(anyInt(), eq(Secondary))).thenReturn(true)
         whenever(passwordTextView.text).thenReturn("000000")
