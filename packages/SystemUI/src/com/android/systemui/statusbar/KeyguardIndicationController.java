@@ -226,6 +226,8 @@ public class KeyguardIndicationController {
     private int mBatteryLevel = -1;
     private boolean mBatteryPresent = true;
     protected long mChargingTimeRemaining;
+    /** Added in July 2025 patch, might conflict when tags get pushed */
+    protected boolean mBatteryDead;
     private Pair<String, BiometricSourceType> mBiometricErrorMessageToShowOnScreenOn;
     private Set<Integer> mCoExFaceAcquisitionMsgIdsToShow;
     private final FaceHelpMessageDeferral mFaceAcquiredMessageDeferral;
