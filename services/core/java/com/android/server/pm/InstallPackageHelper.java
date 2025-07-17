@@ -1231,10 +1231,9 @@ final class InstallPackageHelper {
             CompletableFuture<Void> allFutures =
                     CompletableFuture.allOf(
                             completableFutures.toArray(CompletableFuture[]::new));
-            var unused = allFutures.thenRun(() -> mPm.mHandler.post(actionsAfterDexopt));
-        } else {
-            actionsAfterDexopt.run();
+            allFutures.join();
         }
+        actionsAfterDexopt.run();
     }
 
     private boolean renameAndUpdatePaths(List<InstallRequest> requests) {
