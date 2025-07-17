@@ -1617,8 +1617,16 @@ class AppIdPermissionPolicy : SchemePolicy() {
     ): Boolean {
         val packageNames = state.externalState.appIdPackageNames[appId]!!
         return packageNames.anyIndexed { _, packageName ->
-            val packageState = state.externalState.packageStates[packageName]!!
-            packageState.androidPackage != null && predicate(packageState)
+            val packageState = state.externalState.packageStates[packageName]
+            if (packageState == null) {
+                // On Android 16, when multiple package installer sessions try to install the same
+                // apk, the resulting ap install is temporarily broken until a reboot is done. If
+                // app uninstall was attempted, while the package is in this broken state, the
+                // package state is null for that package, which leads to system crash.
+                Slog.wtf(LOG_TAG, "null package state for pkg: $packageName", Throwable())
+            }
+            // Avoid the NPE for now until a fix is implemented to avoid ephemeral broken installs.
+            packageState?.androidPackage != null && predicate(packageState)
         }
     }
 
