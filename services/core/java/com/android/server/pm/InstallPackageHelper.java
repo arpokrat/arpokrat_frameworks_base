@@ -1006,6 +1006,24 @@ final class InstallPackageHelper {
         return false;
     }
 
+    private final Object mRunningInstallLock = new Object();
+    @GuardedBy("mRunningInstallLock")
+    private final ArraySet<String> mRunningInstalls = new ArraySet<>();
+    @GuardedBy("mRunningInstallLock")
+    private final ArrayMap<String, ArrayList<Runnable>> mPostInstallCallbacks = new ArrayMap<>();
+
+    private static String getPackageName(InstallRequest request) {
+        String packageName = null;
+        if (request.getPackageLite() != null) {
+            packageName = request.getPackageLite().getPackageName();
+        } else if (request.getPkg() != null) {
+            packageName = request.getPkg().getPackageName();
+        } else if (request.getParsedPackage() != null) {
+            packageName = request.getParsedPackage().getPackageName();
+        }
+        return packageName;
+    }
+
     /**
      * Installs one or more packages atomically. This operation is broken up into four phases:
      * <ul>
@@ -1026,6 +1044,41 @@ final class InstallPackageHelper {
      * Failure at any phase will result in a full failure to install all packages.
      */
     void installPackagesTraced(List<InstallRequest> requests, MoveInfo moveInfo) {
+        synchronized (mRunningInstallLock) {
+            if (DEBUG_INSTALL) {
+                String[] packages = requests.stream().map(
+                        InstallPackageHelper::getPackageName).toArray(String[]::new);
+                Slog.d(TAG, "packages to install: " + Arrays.toString(packages));
+                Slog.d(TAG, "currently running installs: " + mRunningInstalls);
+            }
+
+            String firstConflict = null;
+            for (InstallRequest request : requests) {
+                String packageName = getPackageName(request);
+                if (packageName != null && mRunningInstalls.contains(packageName)) {
+                    firstConflict = packageName;
+                    break;
+                }
+            }
+
+            if (firstConflict != null) {
+                if (DEBUG_INSTALL) {
+                    Slog.d(TAG, "rescheduling install of package: " + firstConflict);
+                }
+                ArrayList<Runnable> callbacks = mPostInstallCallbacks.computeIfAbsent(firstConflict,
+                        k -> new ArrayList<>());
+                callbacks.add(() -> installPackagesTraced(requests, moveInfo));
+                return;
+            }
+
+            for (InstallRequest request : requests) {
+                String packageName = getPackageName(request);
+                if (packageName != null) {
+                    mRunningInstalls.add(packageName);
+                }
+            }
+        }
+
         Trace.traceBegin(TRACE_TAG_PACKAGE_MANAGER, "installPackages");
         boolean pendingForDexopt = false;
         boolean success = false;
@@ -1093,6 +1146,26 @@ final class InstallPackageHelper {
 
         for (InstallRequest request : requests) {
             restoreAndPostInstall(request);
+        }
+
+        synchronized (mRunningInstallLock) {
+            for (InstallRequest request : requests) {
+                String packageName = getPackageName(request);
+                if (packageName == null) {
+                    continue;
+                }
+                if (!mRunningInstalls.remove(packageName)) {
+                    // this should never happen
+                    Slog.wtf(TAG, "package install was not running: " + packageName,
+                            new Throwable());
+                }
+                List<Runnable> callbacks = mPostInstallCallbacks.remove(packageName);
+                if (callbacks != null) {
+                    for (Runnable callback : callbacks) {
+                        mPm.mHandler.post(callback);
+                    }
+                }
+            }
         }
     }
 
