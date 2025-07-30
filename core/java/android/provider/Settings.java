@@ -5822,6 +5822,7 @@ public final class Settings {
          * @hide
          */
         @Readable
+        @Protected(immutableValue = "0")
         public static final String NOTIFICATION_COOLDOWN_ENABLED =
             "notification_cooldown_enabled";
 
