@@ -485,7 +485,7 @@ class AvalancheSuppressor(
             return isEnabledFromFlow
         }
         val isEnabled =
-            systemSettings.getInt(Settings.System.NOTIFICATION_COOLDOWN_ENABLED, /* def */ 1) == 1
+            systemSettings.getInt(Settings.System.NOTIFICATION_COOLDOWN_ENABLED, /* def */ 0) == 1
         if (isEnabled == isEnabledFromFlow) {
             isCooldownFlowInSync = true
         }

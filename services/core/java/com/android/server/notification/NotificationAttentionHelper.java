@@ -102,8 +102,8 @@ public final class NotificationAttentionHelper {
 
     private static final float DEFAULT_VOLUME = 1.0f;
     // TODO (b/291899544): remove for release
-    private static final int DEFAULT_NOTIFICATION_COOLDOWN_ENABLED = 1;
-    private static final int DEFAULT_NOTIFICATION_COOLDOWN_ENABLED_FOR_WORK = 1;
+    private static final int DEFAULT_NOTIFICATION_COOLDOWN_ENABLED = 0;
+    private static final int DEFAULT_NOTIFICATION_COOLDOWN_ENABLED_FOR_WORK = 0;
     private static final int DEFAULT_NOTIFICATION_COOLDOWN_ALL = 1;
     private static final int DEFAULT_NOTIFICATION_COOLDOWN_VIBRATE_UNLOCKED = 0;
 

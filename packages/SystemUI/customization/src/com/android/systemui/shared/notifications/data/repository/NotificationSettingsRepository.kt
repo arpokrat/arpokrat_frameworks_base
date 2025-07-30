@@ -71,7 +71,7 @@ class NotificationSettingsRepository(
             .stateIn(
                 scope = backgroundScope,
                 started = SharingStarted.Eagerly,
-                initialValue = true,
+                initialValue = false,
             )
 
     /** The default duration for DND mode when enabled. See [Settings.Secure.ZEN_DURATION]. */
