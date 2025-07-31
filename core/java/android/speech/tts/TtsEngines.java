@@ -289,7 +289,9 @@ public class TtsEngines {
             engine.label = TextUtils.isEmpty(label) ? engine.name : label.toString();
             engine.icon = service.getIconResource();
             engine.priority = resolve.priority;
-            engine.system = isSystemEngine(service);
+            engine.system = isSystemEngine(service)
+                    // make GoogleTTS appear as system so it gets picked by default as system TTS engine
+                    || service.applicationInfo.ext().getPackageId() == android.ext.PackageId.G_TEXT_TO_SPEECH;
             return engine;
         }
 
