@@ -136,7 +136,7 @@ public class CarrierConfigManager {
      * Indicates CARRIER_NR_AVAILABILITY_NSA determine that the carrier enable the non-standalone
      * (NSA) mode of 5G NR.
      */
-    public static final int CARRIER_NR_AVAILABILITY_NSA = 1;
+    public static final int CARRIER_NR_AVAILABILITY_NSA = 2;
 
     /**
      * Indicates CARRIER_NR_AVAILABILITY_SA determine that the carrier enable the standalone (SA)
