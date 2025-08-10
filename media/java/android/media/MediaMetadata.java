@@ -767,8 +767,30 @@ public final class MediaMetadata implements Parcelable {
          * @param source
          */
         public Builder(MediaMetadata source) {
-            mBundle = new Bundle(source.mBundle);
+            mBundle = new Bundle();
             mBitmapDimensionLimit = source.mBitmapDimensionLimit;
+            for (String key : source.mBundle.keySet()) {
+                // there is no non-deprecated way for doing this AFAIK
+                //noinspection deprecation
+                Object value = source.mBundle.get(key);
+                if (value == null) {
+                    Log.w(TAG, "Builder: discarding key with null value: " + key);
+                    continue;
+                }
+                if (value instanceof String s) {
+                    putString(key, s);
+                } else if (value instanceof CharSequence cs) {
+                    putText(key, cs);
+                } else if (value instanceof Long l) {
+                    putLong(key, l.longValue());
+                } else if (value instanceof Rating r) {
+                    putRating(key, r);
+                } else if (value instanceof Bitmap bm) {
+                    putBitmap(key, bm);
+                } else {
+                    throw new IllegalStateException("unexpected value type: " + value.getClass());
+                }
+            }
         }
 
         /**
@@ -805,6 +827,7 @@ public final class MediaMetadata implements Parcelable {
                 }
             }
             mBundle.putCharSequence(key, value);
+            removeIfTooLarge(key);
             return this;
         }
 
@@ -847,6 +870,7 @@ public final class MediaMetadata implements Parcelable {
                 }
             }
             mBundle.putCharSequence(key, value);
+            removeIfTooLarge(key);
             return this;
         }
 
@@ -874,6 +898,7 @@ public final class MediaMetadata implements Parcelable {
                 }
             }
             mBundle.putLong(key, value);
+            removeIfTooLarge(key);
             return this;
         }
 
@@ -898,6 +923,7 @@ public final class MediaMetadata implements Parcelable {
                 }
             }
             mBundle.putParcelable(key, value);
+            removeIfTooLarge(key);
             return this;
         }
 
@@ -927,7 +953,8 @@ public final class MediaMetadata implements Parcelable {
                             + " key cannot be used to put a Bitmap");
                 }
             }
-            mBundle.putParcelable(key, value);
+            mBundle.putParcelable(key, prepareBitmap(value, key));
+            removeIfTooLarge(key);
             return this;
         }
 
@@ -964,19 +991,42 @@ public final class MediaMetadata implements Parcelable {
                 for (String key : mBundle.keySet()) {
                     Object value = mBundle.get(key);
                     if (value instanceof Bitmap bmp) {
-                        final Bitmap orig = bmp;
-                        if (bmp.getHeight() > mBitmapDimensionLimit
-                                || bmp.getWidth() > mBitmapDimensionLimit) {
-                            bmp = scaleBitmap(bmp, mBitmapDimensionLimit);
-                        }
-                        Bitmap sharedBmp = bmp.asShared();
-                        if (orig != sharedBmp) {
-                            putBitmap(key, sharedBmp);
+                        Bitmap preparedBmp = prepareBitmap(bmp, key);
+                        if (preparedBmp != bmp) {
+                            putBitmap(key, preparedBmp);
                         }
                     }
                 }
             }
             return new MediaMetadata(mBundle, mBitmapDimensionLimit);
+        }
+
+        private void removeIfTooLarge(String key) {
+            Parcel parcel = Parcel.obtain();
+            try {
+                mBundle.writeToParcel(parcel, 0);
+                if (parcel.dataSize() > 500 * 1024) {
+                    Log.e(TAG, "Builder: bundle ran out of space, dropping " + key);
+                    mBundle.remove(key);
+                }
+            } finally {
+                parcel.recycle();
+            }
+        }
+
+        private Bitmap prepareBitmap(Bitmap bmp, String key) {
+            int origW = bmp.getWidth();
+            int origH = bmp.getHeight();
+            if (origW > mBitmapDimensionLimit || origH > mBitmapDimensionLimit) {
+                bmp = scaleBitmap(bmp, mBitmapDimensionLimit);
+                Log.d(TAG, "resized bitmap " + key + " from " + origW + "x" + origH
+                        + " to " + bmp.getWidth() + "x" + bmp.getHeight());
+            }
+            Bitmap shared = bmp.asShared();
+            if (bmp != shared) {
+                Log.d(TAG, "converted bitmap " + key + " to a shared bitmap");
+            }
+            return shared;
         }
 
         private Bitmap scaleBitmap(Bitmap bmp, int maxDimension) {
