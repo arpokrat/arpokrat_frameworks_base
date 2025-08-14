@@ -786,7 +786,8 @@ public final class MediaMetadata implements Parcelable {
                 } else if (value instanceof Rating r) {
                     putRating(key, r);
                 } else if (value instanceof Bitmap bm) {
-                    putBitmap(key, bm);
+                    // bitmap resizing is handled in Builder.build()
+                    mBundle.putParcelable(key, bm);
                 } else {
                     throw new IllegalStateException("unexpected value type: " + value.getClass());
                 }
@@ -987,14 +988,12 @@ public final class MediaMetadata implements Parcelable {
          * @return The new MediaMetadata instance
          */
         public MediaMetadata build() {
-            if (mBitmapDimensionLimit != Integer.MAX_VALUE) {
-                for (String key : mBundle.keySet()) {
-                    Object value = mBundle.get(key);
-                    if (value instanceof Bitmap bmp) {
-                        Bitmap preparedBmp = prepareBitmap(bmp, key);
-                        if (preparedBmp != bmp) {
-                            putBitmap(key, preparedBmp);
-                        }
+            for (String key : mBundle.keySet()) {
+                Object value = mBundle.get(key);
+                if (value instanceof Bitmap bmp) {
+                    Bitmap preparedBmp = prepareBitmap(bmp, key);
+                    if (preparedBmp != bmp) {
+                        putBitmap(key, preparedBmp);
                     }
                 }
             }
