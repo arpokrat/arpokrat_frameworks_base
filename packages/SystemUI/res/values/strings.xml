@@ -3542,6 +3542,10 @@
 
     <!-- Label for button to finish and copy edited text back to the clipboard [CHAR LIMIT=20] -->
     <string name="clipboard_edit_text_done">Done</string>
+    <!-- Label for button to show sensitive copied text in the edit clipboard activity [CHAR LIMIT=20] -->
+    <string name="clipboard_edit_text_show_sensitive">Show Content</string>
+    <!-- Label for button to hide sensitive copied text in the edit clipboard activity [CHAR LIMIT=20] -->
+    <string name="clipboard_edit_text_hide_sensitive">Hide Content</string>
     <!-- Text informing user that content has been copied to the system clipboard [CHAR LIMIT=NONE] -->
     <string name="clipboard_overlay_text_copied">Copied</string>
     <!-- Text informing user where text being edited was copied from [CHAR LIMIT=NONE] -->

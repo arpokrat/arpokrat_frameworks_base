@@ -27,12 +27,14 @@ import android.graphics.Insets;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.text.Editable;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -50,7 +52,10 @@ public class EditTextActivity extends Activity
     private EditText mEditText;
     private ClipboardManager mClipboardManager;
     private TextView mAttribution;
+    private Button mToggleSensitiveContentButton;
     private boolean mSensitive;
+    private boolean mSensitiveVisible = true;
+    private boolean mIsRestored = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +65,14 @@ public class EditTextActivity extends Activity
         findViewById(R.id.done_button).setOnClickListener((v) -> saveToClipboard());
         mEditText = findViewById(R.id.edit_text);
         mAttribution = findViewById(R.id.attribution);
+        mToggleSensitiveContentButton = findViewById(R.id.toggle_sensitive_content_button);
+        mToggleSensitiveContentButton.setOnClickListener(v -> toggleSensitiveVisibility());
         mClipboardManager = requireNonNull(getSystemService(ClipboardManager.class));
+
+        if (savedInstanceState != null) {
+            mSensitiveVisible = savedInstanceState.getBoolean("sensitive_visible", true);
+            mIsRestored = true;
+        }
 
         findViewById(R.id.editor_root).setOnApplyWindowInsetsListener(
                 new View.OnApplyWindowInsetsListener() {
@@ -99,12 +111,17 @@ public class EditTextActivity extends Activity
         } catch (PackageManager.NameNotFoundException e) {
             Log.w(TAG, "Package not found: " + mClipboardManager.getPrimaryClipSource(), e);
         }
-        mEditText.setText(clip.getItemAt(0).getText().toString());
-        mEditText.requestFocus();
-        mEditText.setSelection(0);
         mSensitive = clip.getDescription().getExtras() != null
                 && clip.getDescription().getExtras()
                 .getBoolean(ClipDescription.EXTRA_IS_SENSITIVE);
+        mEditText.setText(clip.getItemAt(0).getText().toString());
+        if (mSensitive) {
+            toggleSensitiveVisibility();
+            mIsRestored = false;
+        }
+        mToggleSensitiveContentButton.setVisibility(mSensitive ? View.VISIBLE : View.INVISIBLE);
+        mEditText.requestFocus();
+        mEditText.setSelection(0);
         mClipboardManager.addPrimaryClipChangedListener(this);
     }
 
@@ -118,6 +135,31 @@ public class EditTextActivity extends Activity
     public void onPrimaryClipChanged() {
         hideIme();
         finish();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("sensitive_visible", mSensitiveVisible);
+    }
+
+    private void toggleSensitiveVisibility() {
+        if (mIsRestored) {
+            updateSensitiveContent(!mSensitiveVisible);
+        } else {
+            updateSensitiveContent(mSensitiveVisible);
+            mSensitiveVisible = !mSensitiveVisible;
+        }
+    }
+
+    private void updateSensitiveContent(boolean mWasSensitiveVisible) {
+        mEditText.setTransformationMethod(
+                mWasSensitiveVisible ? PasswordTransformationMethod.getInstance() : null
+        );
+        mToggleSensitiveContentButton.setText(getString(
+                mWasSensitiveVisible ? R.string.clipboard_edit_text_show_sensitive :
+                        R.string.clipboard_edit_text_hide_sensitive
+        ));
     }
 
     private void saveToClipboard() {
