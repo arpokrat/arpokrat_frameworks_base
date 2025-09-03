@@ -22,6 +22,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <Button
+        android:id="@+id/toggle_sensitive_content_button"
+        style="@style/EditTextActivityButton"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="12dp"
+        android:paddingHorizontal="16dp"
+        android:background="@drawable/overlay_button_background"
+        android:text="@string/clipboard_edit_text_show_sensitive"
+        android:backgroundTint="@androidprv:color/materialColorPrimary"
+        android:textColor="@androidprv:color/materialColorOnPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:visibility="invisible"/>
+
     <TextView
         android:id="@+id/attribution"
         android:layout_width="wrap_content"
