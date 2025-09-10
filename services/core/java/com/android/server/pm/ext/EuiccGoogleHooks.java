@@ -25,6 +25,7 @@ class EuiccGoogleHooks extends PackageHooks {
                 // install/enable them
                 case Manifest.permission.INSTALL_EXISTING_PACKAGES:
                 case Manifest.permission.CHANGE_COMPONENT_ENABLED_STATE:
+                case Manifest.permission.REAL_GET_TASKS:
                     return true;
             }
 
