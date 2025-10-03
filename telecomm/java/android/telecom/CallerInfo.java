@@ -697,12 +697,13 @@ public class CallerInfo {
                     + Log.pii(number) + "'");
         }
 
-        if (pn != null) {
+        if (pn == null || locale == null) {
+            Log.w(TAG, "pn and/or locale was null in getGeoDescription");
+            return null;
+        } else {
             String description = geocoder.getDescriptionForNumber(pn, locale);
             if (VDBG) Log.v(TAG, "- got description: '" + description + "'");
             return description;
-        } else {
-            return null;
         }
     }
 
