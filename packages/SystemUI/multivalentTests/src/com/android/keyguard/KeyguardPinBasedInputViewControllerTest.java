@@ -36,6 +36,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
 import com.android.internal.util.LatencyTracker;
+import com.android.internal.widget.LockDomain;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.keyguard.KeyguardSecurityModel.SecurityMode;
 import com.android.keyguard.domain.interactor.KeyguardKeyboardInteractor;
@@ -123,13 +124,14 @@ public class KeyguardPinBasedInputViewControllerTest extends SysuiTestCase {
         when(mPinBasedInputView.findViewById(R.id.key_enter))
                 .thenReturn(mOkButton);
 
+        when(mPinBasedInputView.getContext()).thenReturn(getContext());
         when(mPinBasedInputView.getResources()).thenReturn(getContext().getResources());
         when(mPasswordEntry.getLayoutParams()).thenReturn(mPasswordEntryLayoutParams);
         KeyguardKeyboardInteractor keyguardKeyboardInteractor =
                 new KeyguardKeyboardInteractor(new FakeKeyboardRepository());
         FakeFeatureFlags featureFlags = new FakeFeatureFlags();
         mSetFlagsRule.enableFlags(com.android.systemui.Flags.FLAG_REVAMPED_BOUNCER_MESSAGES);
-        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt())).thenReturn(false);
+        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt(), any(LockDomain.class))).thenReturn(false);
         mKeyguardPinViewController = new KeyguardPinBasedInputViewController(mPinBasedInputView,
                 mKeyguardUpdateMonitor, mSecurityMode, mLockPatternUtils, mKeyguardSecurityCallback,
                 mKeyguardMessageAreaControllerFactory, mLatencyTracker,
@@ -163,7 +165,7 @@ public class KeyguardPinBasedInputViewControllerTest extends SysuiTestCase {
     @Test
     @EnableFlags(FLAG_HIDE_LAST_CHAR_WITH_PHYSICAL_INPUT)
     public void updateAnimations_addDevice_notKeyboard() {
-        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt())).thenReturn(false);
+        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt(), any(LockDomain.class))).thenReturn(false);
         verify(mPasswordEntry, times(1)).setShowPassword(true);
         mKeyguardPinViewController.onViewAttached();
         mKeyguardPinViewController.onInputDeviceAdded(1);
@@ -173,7 +175,7 @@ public class KeyguardPinBasedInputViewControllerTest extends SysuiTestCase {
     @Test
     @EnableFlags(FLAG_HIDE_LAST_CHAR_WITH_PHYSICAL_INPUT)
     public void updateAnimations_addDevice_keyboard() {
-        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt())).thenReturn(true);
+        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt(), any(LockDomain.class))).thenReturn(true);
         verify(mPasswordEntry, times(1)).setShowPassword(true);
         mKeyguardPinViewController.onViewAttached();
         mKeyguardPinViewController.onInputDeviceAdded(1);
@@ -183,7 +185,7 @@ public class KeyguardPinBasedInputViewControllerTest extends SysuiTestCase {
     @Test
     @EnableFlags(FLAG_HIDE_LAST_CHAR_WITH_PHYSICAL_INPUT)
     public void updateAnimations_addDevice_multipleKeyboards() {
-        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt())).thenReturn(true);
+        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt(), any(LockDomain.class))).thenReturn(true);
         verify(mPasswordEntry, times(1)).setShowPassword(true);
         mKeyguardPinViewController.onViewAttached();
         mKeyguardPinViewController.onInputDeviceAdded(1);
@@ -195,7 +197,7 @@ public class KeyguardPinBasedInputViewControllerTest extends SysuiTestCase {
     @Test
     @EnableFlags(FLAG_HIDE_LAST_CHAR_WITH_PHYSICAL_INPUT)
     public void updateAnimations_removeDevice_notKeyboard() {
-        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt())).thenReturn(false);
+        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt(), any(LockDomain.class))).thenReturn(false);
         verify(mPasswordEntry, times(1)).setShowPassword(true);
         mKeyguardPinViewController.onViewAttached();
         mKeyguardPinViewController.onInputDeviceRemoved(1);
@@ -205,7 +207,7 @@ public class KeyguardPinBasedInputViewControllerTest extends SysuiTestCase {
     @Test
     @EnableFlags(FLAG_HIDE_LAST_CHAR_WITH_PHYSICAL_INPUT)
     public void updateAnimations_removeDevice_keyboard() {
-        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt())).thenReturn(true, false);
+        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt(), any(LockDomain.class))).thenReturn(true, false);
         verify(mPasswordEntry, times(1)).setShowPassword(true);
         verify(mPasswordEntry, times(0)).setShowPassword(false);
         mKeyguardPinViewController.onViewAttached();
@@ -219,7 +221,7 @@ public class KeyguardPinBasedInputViewControllerTest extends SysuiTestCase {
     @Test
     @EnableFlags(FLAG_HIDE_LAST_CHAR_WITH_PHYSICAL_INPUT)
     public void updateAnimations_removeDevice_multipleKeyboards() {
-        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt())).thenReturn(true, true);
+        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt(), any(LockDomain.class))).thenReturn(true, true);
         verify(mPasswordEntry, times(1)).setShowPassword(true);
         verify(mPasswordEntry, times(0)).setShowPassword(false);
         mKeyguardPinViewController.onViewAttached();
@@ -233,7 +235,7 @@ public class KeyguardPinBasedInputViewControllerTest extends SysuiTestCase {
     @Test
     @EnableFlags(FLAG_HIDE_LAST_CHAR_WITH_PHYSICAL_INPUT)
     public void updateAnimations_updateDevice_notKeyboard() {
-        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt())).thenReturn(false);
+        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt(), any(LockDomain.class))).thenReturn(false);
         verify(mPasswordEntry, times(1)).setShowPassword(true);
         mKeyguardPinViewController.onViewAttached();
         mKeyguardPinViewController.onInputDeviceChanged(1);
@@ -243,7 +245,7 @@ public class KeyguardPinBasedInputViewControllerTest extends SysuiTestCase {
     @Test
     @EnableFlags(FLAG_HIDE_LAST_CHAR_WITH_PHYSICAL_INPUT)
     public void updateAnimations_updateDevice_keyboard() {
-        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt())).thenReturn(true, false);
+        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt(), any(LockDomain.class))).thenReturn(true, false);
         verify(mPasswordEntry, times(1)).setShowPassword(true);
         verify(mPasswordEntry, times(0)).setShowPassword(false);
         mKeyguardPinViewController.onViewAttached();
@@ -257,7 +259,7 @@ public class KeyguardPinBasedInputViewControllerTest extends SysuiTestCase {
     @Test
     @EnableFlags(FLAG_HIDE_LAST_CHAR_WITH_PHYSICAL_INPUT)
     public void updateAnimations_updateDevice_multipleKeyboards() {
-        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt())).thenReturn(true, true);
+        when(mLockPatternUtils.isPinEnhancedPrivacyEnabled(anyInt(), any(LockDomain.class))).thenReturn(true, true);
         verify(mPasswordEntry, times(1)).setShowPassword(true);
         verify(mPasswordEntry, times(0)).setShowPassword(false);
         mKeyguardPinViewController.onViewAttached();
