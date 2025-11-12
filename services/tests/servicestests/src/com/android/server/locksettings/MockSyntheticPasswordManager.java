@@ -44,7 +44,7 @@ public class MockSyntheticPasswordManager extends SyntheticPasswordManager {
     public MockSyntheticPasswordManager(Context context, LockSettingsStorage storage,
             FakeGateKeeperService gatekeeper, UserManager userManager,
             PasswordSlotManager passwordSlotManager) {
-        super(context, storage, userManager, passwordSlotManager);
+        super(context, storage, userManager, passwordSlotManager, false);
         mGateKeeper = gatekeeper;
     }
 
