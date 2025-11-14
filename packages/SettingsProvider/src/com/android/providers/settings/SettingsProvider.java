@@ -6329,12 +6329,11 @@ public class SettingsProvider extends ContentProvider {
                                 true,
                                 SettingsState.SYSTEM_PACKAGE_NAME);
                     }
-                    // Migrate legacy fingerprint keyguard toggle to new unified
-                    // biometric api toggle
+                    // Migrate legacy fingerprint_unlock_keyguard_enabled setting
                     final Setting oldFingerSetting = secureSettings.getSettingLocked("fingerprint_unlock_keyguard_enabled");
                     if (!oldFingerSetting.isNull()) {
                         secureSettings.insertSettingLocked(
-                                Secure.BIOMETRIC_KEYGUARD_ENABLED,
+                                Secure.FINGERPRINT_KEYGUARD_ENABLED,
                                 oldFingerSetting.getValue(),
                                 null,
                                 false,
