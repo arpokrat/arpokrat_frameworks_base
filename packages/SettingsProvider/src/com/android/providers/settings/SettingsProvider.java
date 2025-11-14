@@ -6895,6 +6895,24 @@ public class SettingsProvider extends ContentProvider {
                                 SettingsState.SYSTEM_PACKAGE_NAME);
                     }
 
+                    // Migrate the legacy BIOMETRIC_KEYGUARD_ENABLED setting to
+                    // FINGERPRINT_KEYGUARD_ENABLED setting. The related FACE_KEYGUARD_ENABLED
+                    // setting is intentionally ignored since none of the current GrapheneOS devices
+                    // support face unlock, i.e. BIOMETRIC_KEYGUARD_ENABLED always meant
+                    // "fingerprint keyguard unlock" for all GrapheneOS devices that can hit
+                    // this migration path.
+                    final SettingsState secureSettings = getSecureSettingsLocked(userId, deviceId);
+                    final Setting biometricKeyguardSetting = secureSettings.getSettingLocked(Secure.BIOMETRIC_KEYGUARD_ENABLED);
+                    if (!biometricKeyguardSetting.isNull()) {
+                        secureSettings.insertSettingLocked(
+                                Secure.FINGERPRINT_KEYGUARD_ENABLED,
+                                biometricKeyguardSetting.getValue(),
+                                null,
+                                false,
+                                SettingsState.SYSTEM_PACKAGE_NAME);
+                        secureSettings.deleteSettingLocked(Secure.BIOMETRIC_KEYGUARD_ENABLED);
+                    }
+
                     currentVersion = 230;
                 }
 
