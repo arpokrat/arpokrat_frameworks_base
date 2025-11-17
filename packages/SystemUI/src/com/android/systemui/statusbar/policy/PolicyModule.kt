@@ -489,6 +489,21 @@ interface PolicyModule {
         ): QSTileImpl<*> {
             return if (FlashlightStrength.isEnabled) levelTile.get() else binaryTile.get()
         }
+
+        @Provides
+        @IntoMap
+        @StringKey(BatteryShareTile.TILE_SPEC)
+        fun provideBatteryShareTileConfig(uiEventLogger: QsEventLogger): QSTileConfig =
+            QSTileConfig(
+                tileSpec = TileSpec.create(BatteryShareTile.TILE_SPEC),
+                uiConfig =
+                    QSTileUIConfig.Resource(
+                        iconRes = R.drawable.ic_battery_share,
+                        labelRes = R.string.battery_share_switch_title,
+                    ),
+                instanceId = uiEventLogger.getNewInstanceId(),
+                category = TileCategory.UTILITIES,
+            )
     }
 
     /** Inject LocationTile into tileMap in QSModule */
