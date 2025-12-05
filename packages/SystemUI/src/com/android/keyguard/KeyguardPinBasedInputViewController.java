@@ -19,7 +19,6 @@ package com.android.keyguard;
 import static android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED;
 
 import static com.android.internal.widget.flags.Flags.hideLastCharWithPhysicalInput;
-import static com.android.keyguard.KeyguardSecurityModel.SecurityMode.BiometricSecondFactorPin;
 import static com.android.systemui.Flags.pinInputFieldStyledFocusState;
 import static com.android.systemui.util.kotlin.JavaAdapterKt.collectFlow;
 
@@ -109,8 +108,7 @@ public abstract class KeyguardPinBasedInputViewController<T extends KeyguardPinB
         int userId = mSelectedUserInteractor.getSelectedUserId();
         BoolSetting setting;
         if (this instanceof KeyguardPinViewController) {
-            setting = securityMode == BiometricSecondFactorPin ?
-                    ExtSettings.SCRAMBLE_LOCKSCREEN_PIN_LAYOUT_SECONDARY :
+            setting =
                     ExtSettings.SCRAMBLE_LOCKSCREEN_PIN_LAYOUT_PRIMARY;
         } else {
             setting = ExtSettings.SCRAMBLE_SIM_PIN_LAYOUT;
