@@ -43,9 +43,19 @@ public class DuressPasswordHelper {
             return;
         }
 
+        // original credential is zeroized after this method returns
+        LockscreenCredential credentialCopy = credential.duplicate();
+
         // credential verification is slow, don't block the current (usually binder) thread
         backgroundThread.getThreadHandler().post(() -> {
-            if (isDuressCredential(credential)) {
+            final boolean isDuressCredential;
+            try {
+                isDuressCredential = isDuressCredential(credentialCopy);
+            } finally {
+                // invalid credential might be similar to the actual credential
+                credentialCopy.zeroize();
+            }
+            if (isDuressCredential) {
                 DuressWipe.run(lockSettingsService.getContext());
             }
         });
