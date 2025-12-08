@@ -1,3 +1,4 @@
+
 package com.android.server.locksettings;
 
 import static com.android.internal.widget.LockDomain.Primary;
@@ -167,17 +168,16 @@ public abstract class WeaverBasedSyntheticPasswordTests extends SyntheticPasswor
                 null);
         assertArrayEquals(result.syntheticPassword.deriveKeyStorePassword(),
                 sp.deriveKeyStorePassword());
+        assertTrue(result.response.isMatched());
         if (lockDomain == Primary) {
-            assertEquals(VerifyCredentialResponse.RESPONSE_OK, result.gkResponse.getResponseCode());
-            assertNotNull(result.gkResponse.getGatekeeperHAT());
+            assertNotNull(result.response.getGatekeeperHAT());
         } else {
-            assertEquals(VerifyCredentialResponse.RESPONSE_OK, result.gkResponse.getResponseCode());
-            assertNull(result.gkResponse.getGatekeeperHAT());
+            assertNull(result.response.getGatekeeperHAT());
         }
 
         result = mSpManager.unlockLskfBasedProtector(mGateKeeperService, protectorId, badPin,
                 lockDomain, userId, null);
         assertNull(result.syntheticPassword);
-        assertEquals(VerifyCredentialResponse.ERROR, result.gkResponse);
+        assertTrue(result.response.isCredCertainlyIncorrect());
     }
 }

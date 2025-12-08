@@ -561,7 +561,7 @@ public class AuthenticationPolicyServiceTest {
 
         // Device lock should be disabled for both the primary user and its profile
         testReportAuthAttempt_primaryAuthAndBiometricAuthFailed_primaryUser(
-                false /* enabled */);
+                false /* enabled */, Primary);
         testReportAuthAttempt_primaryAuthAndBiometricAuthFailed_profileOfPrimaryUser(
                 false /* enabled */);
     }

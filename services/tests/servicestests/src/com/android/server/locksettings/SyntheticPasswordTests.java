@@ -112,7 +112,7 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
                 USER_ID, null);
         assertArrayEquals(result.syntheticPassword.deriveKeyStorePassword(),
                 sp.deriveKeyStorePassword());
-        assertNull(result.gkResponse);
+        assertNull(result.response);
     }
 
     @Test
@@ -143,18 +143,17 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
                 protectorId, password, lockDomain, USER_ID, null);
         assertArrayEquals(result.syntheticPassword.deriveKeyStorePassword(),
                 sp.deriveKeyStorePassword());
+        assertTrue(result.response.isMatched());
         if (lockDomain == Primary) {
-            assertEquals(VerifyCredentialResponse.RESPONSE_OK, result.gkResponse.getResponseCode());
-            assertNotNull(result.gkResponse.getGatekeeperHAT());
+            assertNotNull(result.response.getGatekeeperHAT());
         } else {
-            assertEquals(VerifyCredentialResponse.RESPONSE_OK, result.gkResponse.getResponseCode());
-            assertNull(result.gkResponse.getGatekeeperHAT());
+            assertNull(result.response.getGatekeeperHAT());
         }
 
         result = manager.unlockLskfBasedProtector(mGateKeeperService, protectorId, badPassword,
                 Secondary, USER_ID, null);
         assertNull(result.syntheticPassword);
-        assertEquals(VerifyCredentialResponse.ERROR, result.gkResponse);
+        assertTrue(result.response.isOtherError());
     }
 
     @Test
@@ -285,8 +284,8 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
 
         // Secondary.
         mService.setLockCredential(newSecondaryPin, newPassword, Secondary, PRIMARY_USER_ID);
-        assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
-                newSecondaryPin, Secondary, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
+        assertTrue(mService.verifyCredential(
+                newSecondaryPin, Secondary, PRIMARY_USER_ID, 0 /* flags */).isMatched());
     }
 
     @Test
@@ -312,6 +311,13 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         } else {
             assertTrue(response.isOtherError());
         }
+
+        // Secondary.
+        assertTrue(mService.verifyCredential(
+                secondaryPin, Secondary, PRIMARY_USER_ID, 0 /* flags */).isMatched());
+
+        assertTrue(mService.verifyCredential(
+                badSecondaryPin, Secondary, PRIMARY_USER_ID, 0 /* flags */).isOtherError());
     }
 
     @Test
@@ -327,13 +333,6 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         assertTrue(
                 mService.verifyCredential(badPassword, PRIMARY_USER_ID, 0 /* flags */)
                         .isOtherError());
-
-        // Secondary.
-        assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
-                secondaryPin, Secondary, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
-
-        assertEquals(VerifyCredentialResponse.RESPONSE_ERROR, mService.verifyCredential(
-                badSecondaryPin, Secondary, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
     }
 
     @Test
@@ -366,8 +365,8 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
 
         // set a new password
         mService.setLockCredential(badSecondaryPin, badPassword, Secondary, PRIMARY_USER_ID);
-        assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
-                badSecondaryPin, Secondary, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
+        assertTrue(mService.verifyCredential(
+                badSecondaryPin, Secondary, PRIMARY_USER_ID, 0 /* flags */).isMatched());
     }
 
     @Test
@@ -394,8 +393,8 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
         // Secondary.
         reset(mAuthSecretService);
         mService.setLockCredential(newSecondaryPin, newPassword, Secondary, PRIMARY_USER_ID);
-        assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
-                newSecondaryPin, Secondary, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
+        assertTrue(mService.verifyCredential(
+                newSecondaryPin, Secondary, PRIMARY_USER_ID, 0 /* flags */).isMatched());
 
         // Check the same secret was passed each time
         verify(mAuthSecretService, never()).setPrimaryUserCredential(any(byte[].class));
@@ -419,8 +418,8 @@ public class SyntheticPasswordTests extends BaseLockSettingsServiceTests {
 
         initSpAndSetCredential(PRIMARY_USER_ID, password, secondaryPin);
         reset(mAuthSecretService);
-        assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
-                secondaryPin, Secondary, PRIMARY_USER_ID, 0 /* flags */).getResponseCode());
+        assertTrue(mService.verifyCredential(
+                secondaryPin, Secondary, PRIMARY_USER_ID, 0 /* flags */).isMatched());
         verify(mAuthSecretService, never()).setPrimaryUserCredential(any(byte[].class));
     }
 
