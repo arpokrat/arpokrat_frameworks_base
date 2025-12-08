@@ -329,7 +329,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         setCredential(PRIMARY_USER_ID, password);
 
         reset(mStrongAuth);
-        mService.checkCredential(password, PRIMARY_USER_ID,
+        mService.checkCredential(password, Primary, PRIMARY_USER_ID,
                 mock(ICheckCredentialProgressCallback.class));
 
         verify(mStrongAuth, never()).reportUnlock(anyInt());
@@ -384,7 +384,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
         setCredential(PRIMARY_USER_ID, secondaryPin, primaryPassword, Secondary);
         verify(mRecoverableKeyStoreManager, never())
-                .lockScreenSecretChanged(CREDENTIAL_TYPE_PASSWORD, "password".getBytes(),
+                .lockScreenSecretChanged(primaryPassword,
                         PRIMARY_USER_ID);
     }
 
@@ -596,7 +596,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
         verify(mRecoverableKeyStoreManager, never())
                 .lockScreenSecretAvailable(
-                        anyInt(), any(byte[].class), anyInt());
+                        any(LockscreenCredential.class), anyInt());
     }
 
     @Test
@@ -1419,7 +1419,7 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         setCredential(PRIMARY_USER_ID, parentPrimaryPin);
 
         mService.setSeparateProfileChallengeEnabled(MANAGED_PROFILE_USER_ID, false, null);
-        assertTrue(mService.isProfileWithUnifiedLock(MANAGED_PROFILE_USER_ID));
+        assertTrue(mService.isProfileWithTiedLock(MANAGED_PROFILE_USER_ID));
 
         final LockscreenCredential profileSecondaryPin = newPin("654321");
         assertThrows(
@@ -1623,8 +1623,13 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
     public void verifyCredential_notExistingUser_returnsError(LockDomain lockDomain) {
         LockscreenCredential credentialToVerify = newPin("123456");
 
-        assertEquals(VerifyCredentialResponse.ERROR, mService.verifyCredential(credentialToVerify,
-                lockDomain, DOES_NOT_EXIST_USER_ID, 0));
+        if (lockDomain == Primary) {
+            assertThrows(IllegalArgumentException.class, () -> mService.verifyCredential(credentialToVerify,
+                    lockDomain, DOES_NOT_EXIST_USER_ID, 0));
+        } else {
+            assertTrue(mService.verifyCredential(credentialToVerify,
+                    lockDomain, DOES_NOT_EXIST_USER_ID, 0).isOtherError());
+        }
     }
 
     @Test
@@ -1633,13 +1638,13 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
 
         final LockscreenCredential primaryPassword = newPassword("primaryPassword");
         setCredential(userId, primaryPassword);
-        assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
-                primaryPassword, userId, 0).getResponseCode());
+        assertTrue(mService.verifyCredential(
+                primaryPassword, userId, 0).isMatched());
 
         final LockscreenCredential secondaryPin = newPin("1111");
         setCredential(userId, secondaryPin, primaryPassword, Secondary);
-        assertEquals(VerifyCredentialResponse.RESPONSE_OK, mService.verifyCredential(
-                secondaryPin, Secondary, userId, 0).getResponseCode());
+        assertTrue(mService.verifyCredential(
+                secondaryPin, Secondary, userId, 0).isMatched());
     }
 
     @Test
@@ -1649,13 +1654,13 @@ public class LockSettingsServiceTests extends BaseLockSettingsServiceTests {
         final LockscreenCredential badPassword = newPassword("badPassword");
         final LockscreenCredential primaryPassword = newPassword("primaryPassword");
         setCredential(userId, primaryPassword);
-        assertEquals(VerifyCredentialResponse.RESPONSE_ERROR, mService.verifyCredential(
-                badPassword, userId, 0).getResponseCode());
+        assertTrue(mService.verifyCredential(
+                badPassword, userId, 0).isOtherError());
 
         final LockscreenCredential secondaryPin = newPin("1111");
         setCredential(userId, secondaryPin, primaryPassword, Secondary);
-        assertEquals(VerifyCredentialResponse.RESPONSE_ERROR, mService.verifyCredential(
-                badPassword, Secondary, userId, 0).getResponseCode());
+        assertTrue(mService.verifyCredential(
+                badPassword, Secondary, userId, 0).isOtherError());
     }
 
     @Test
