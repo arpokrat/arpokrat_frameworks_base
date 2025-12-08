@@ -98,13 +98,12 @@ public class AuthenticationPolicyService extends SystemService {
     private static final int MSG_REPORT_BIOMETRIC_AUTH_SUCCESS = 2;
     private static final int MSG_REPORT_BIOMETRIC_AUTH_FAILURE = 3;
     private static final int MSG_REPORT_BIOMETRIC_AUTH_ERROR = 4;
-    private static final int MSG_REPORT_BIOMETRIC_AUTH_ATTEMPT = 5;
-    private static final int MSG_REPORT_BIOMETRIC_SECOND_FACTOR_AUTH_ATTEMPT = 6;
+    private static final int MSG_REPORT_BIOMETRIC_SECOND_FACTOR_AUTH_ATTEMPT = 5;
     private static final int AUTH_SUCCESS = 1;
     private static final int AUTH_FAILURE = 0;
     private static final int TYPE_PRIMARY_AUTH = 0;
     private static final int TYPE_BIOMETRIC_AUTH = 1;
-    private static final int TYPE_BIOMETRIC_SECOND_FACTOR_AUTH = 3;
+    private static final int TYPE_BIOMETRIC_SECOND_FACTOR_AUTH = 2;
 
     private final LockPatternUtils mLockPatternUtils;
     private final LockSettingsInternal mLockSettings;

@@ -3992,6 +3992,10 @@ public class LockSettingsService extends ILockSettings.Stub {
         mSpManager.destroyEscrowData(userId);
     }
 
+    public ParcelDuration getLockoutEndTime(@UserIdInt int userId) {
+        return getLockoutEndTime(userId, Primary);
+    }
+
     /**
      * Returns the end time of a lockout for the given user's LSKF as a time since boot, or {@link
      * java.time.Duration.ZERO} if there is no lockout.
