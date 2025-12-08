@@ -272,8 +272,8 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
         `when`(passwordTextView.text).thenReturn("")
 
         securityMode = SecurityMode.BiometricSecondFactorPin
-        val pinViewController = constructPinViewController(mockKeyguardPinView)
-        pinViewController.onViewAttached()
+        constructPinViewController(mockKeyguardPinView)
+        underTest!!.onViewAttached()
 
         verify(deleteButton).visibility = View.INVISIBLE
         verify(enterButton).visibility = View.INVISIBLE
@@ -306,8 +306,7 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
         `when`(passwordTextView.text).thenReturn("")
 
         securityMode = SecurityMode.BiometricSecondFactorPin
-        val pinViewController = constructPinViewController(mockKeyguardPinView)
-        pinViewController.onViewAttached()
+        underTest!!.onViewAttached()
 
         verify(deleteButton).visibility = View.VISIBLE
         verify(enterButton).visibility = View.VISIBLE
@@ -328,9 +327,9 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
     fun handleLockout_secondaryReadsNumberOfErrorAttempts() {
         securityMode = SecurityMode.BiometricSecondFactorPin
 
-        val pinViewController = constructPinViewController(mockKeyguardPinView)
+        constructPinViewController(mockKeyguardPinView)
 
-        pinViewController.handleAttemptLockout(0)
+        underTest!!.handleAttemptLockout(0)
 
         verify(lockPatternUtils).getCurrentFailedPasswordAttempts(anyInt(), eq(Secondary))
     }
@@ -360,9 +359,9 @@ class KeyguardPinViewControllerTest : SysuiTestCase() {
         whenever(mockKeyguardPinView.enteredCredential)
                 .thenReturn(LockscreenCredential.createPin("000000"))
 
-            securityMode = SecurityMode.BiometricSecondFactorPin
-        val pinViewController = constructPinViewController(mockKeyguardPinView)
-        pinViewController.onUserInput()
+        securityMode = SecurityMode.BiometricSecondFactorPin
+        constructPinViewController(mockKeyguardPinView)
+        underTest!!.onUserInput()
 
         verify(uiEventLogger).log(PinBouncerUiEvent.ATTEMPT_UNLOCK_WITH_AUTO_CONFIRM_FEATURE)
         verify(keyguardUpdateMonitor).setCredentialAttempted()
