@@ -26,6 +26,9 @@ public class PixelCameraServicesHooks extends PackageHooks {
                 // added in 14 QPR3:
                 case Manifest.permission.ACCESS_FINE_LOCATION:
                 case Manifest.permission.INTERACT_ACROSS_USERS:
+                // needed for the Connected Cameras feature that is currently unsupported on GrapheneOS:
+                // https://support.google.com/pixelphone/answer/15985851?hl=en
+                case Manifest.permission.INTERNET:
                     return true;
             }
 
