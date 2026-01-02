@@ -2018,7 +2018,7 @@ public final class PermissionManager {
         }
 
         if (res != PERMISSION_GRANTED) {
-            if (pkgName.equals(ActivityThread.currentPackageName())
+            if (pkgName != null && pkgName.equals(ActivityThread.currentPackageName())
                     && userId == UserHandle.myUserId()
                     && AppPermissionUtils.shouldSpoofSelfCheck(permName))
             {
