@@ -678,6 +678,7 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
 
         ShutDownAction shutdownAction = new ShutDownAction();
         RestartAction restartAction = new RestartAction();
+        var restartSafeModeAction = new RestartSafeModeAction(mContext);
         ArraySet<String> addedKeys = new ArraySet<>();
         List<Action> tempActions = new ArrayList<>();
         CurrentUserProvider currentUser = new CurrentUserProvider();
@@ -744,6 +745,8 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
             // Add here so we don't add more than one.
             addedKeys.add(actionKey);
         }
+
+        addIfShouldShowAction(tempActions, restartSafeModeAction);
 
         // replace power and restart with a single power options action, if needed
         if (tempActions.contains(shutdownAction) && tempActions.contains(restartAction)
@@ -1126,6 +1129,40 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
             }
             mUiEventLogger.log(GlobalActionsEvent.GA_REBOOT_PRESS);
             mWindowManagerFuncs.reboot(false);
+        }
+    }
+
+    @VisibleForTesting
+    final class RestartSafeModeAction extends SinglePressAction {
+        private final Context mContext;
+
+        RestartSafeModeAction(Context context) {
+            super(com.android.systemui.res.R.drawable.ic_global_actions_restart,
+                    R.string.reboot_safemode_title);
+            mContext = context;
+        }
+
+        @Override
+        public boolean shouldShow() {
+            return !mContext.getSystemService(UserManager.class).isUserUnlocked(UserHandle.USER_SYSTEM);
+        }
+
+        @Override
+        public boolean showDuringKeyguard() {
+            return true;
+        }
+
+        @Override
+        public boolean showBeforeProvisioning() {
+            return true;
+        }
+
+        @Override
+        public void onPress() {
+            if (ActivityManager.isUserAMonkey()) {
+                return;
+            }
+            mWindowManagerFuncs.reboot(true);
         }
     }
 
