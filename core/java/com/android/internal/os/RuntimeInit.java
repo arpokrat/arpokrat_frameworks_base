@@ -114,6 +114,13 @@ public class RuntimeInit {
                 Clog_e(TAG, "*** FATAL EXCEPTION IN SYSTEM PROCESS: " + t.getName(), e);
                 mCrashCount = SystemProperties.getInt(SYSPROP_CRASH_COUNT, 0) + 1;
                 SystemProperties.set(SYSPROP_CRASH_COUNT, String.valueOf(mCrashCount));
+                boolean isSafeMode = android.os.SystemProperties.getInt(
+                    "ro.sys.safemode", 0) == 1;
+                if (isSafeMode) {
+                    Slog.e(TAG, "system_server has encountered a fatal exception in safe mode, sleeping for 10 seconds...");
+                    // give user a bit of time to see crash info in the LogViewer app
+                    android.os.SystemClock.sleep(10_000);
+                }
             } else {
                 logUncaught(t.getName(), ActivityThread.currentProcessName(), Process.myPid(), e);
             }
