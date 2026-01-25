@@ -421,7 +421,8 @@ public class TombstoneHandler {
             );
         }
 
-        if ("/apex/com.google.android.hardware.biometrics.fingerprint/bin/hw/android.hardware.biometrics.fingerprint-service.goodix".equals(cmdline[0])) {
+        if ("/apex/com.google.android.hardware.biometrics.fingerprint/bin/hw/android.hardware.biometrics.fingerprint-service.goodix".equals(cmdline[0])
+                || "/vendor/bin/hw/android.hardware.biometrics.fingerprint-service.goodix".equals(cmdline[0])) {
             // rare harmless crash, fingerprint service restarts and continues to work
             String[] functionNames = {
                     "android::VectorImpl::editArrayImpl()",
