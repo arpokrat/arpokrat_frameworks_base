@@ -40,6 +40,8 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.SharedLibraryInfo;
 import android.content.pm.VersionedPackage;
 import android.ext.PackageId;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.os.Process;
 import android.os.RemoteException;
 import android.os.UserHandle;
@@ -462,9 +464,9 @@ public class GmcPackageManager extends ApplicationPackageManager {
         } catch (NameNotFoundException e) {
             return null;
         }
+        pi = cloneViaParcel(pi, PackageInfo.CREATOR);
         pi.packageName = pkgName;
-        pi.applicationInfo.packageName = pkgName;
-        pi.applicationInfo.enabled = false;
+        writePseudoDisabledAppInfo(pkgName, pi.applicationInfo);
         pi.setLongVersionCode(Integer.MAX_VALUE);
         return pi;
     }
@@ -477,11 +479,25 @@ public class GmcPackageManager extends ApplicationPackageManager {
         } catch (NameNotFoundException e) {
             return null;
         }
+        ai = cloneViaParcel(ai, ApplicationInfo.CREATOR);
+        writePseudoDisabledAppInfo(pkgName, ai);
+        return ai;
+    }
+
+    private static <T extends Parcelable> T cloneViaParcel(T obj, Parcelable.Creator<T> creator) {
+        Parcel p = Parcel.obtain();
+        obj.writeToParcel(p, 0);
+        p.setDataPosition(0);
+        T res = creator.createFromParcel(p);
+        p.recycle();
+        return res;
+    }
+
+    private static void writePseudoDisabledAppInfo(String pkgName, ApplicationInfo ai) {
         ai.packageName = pkgName;
         ai.enabled = false;
         ai.longVersionCode = Integer.MAX_VALUE;
         ai.versionCode = Integer.MAX_VALUE;
-        return ai;
     }
 
     private static String selfPkgName() {
@@ -502,6 +518,8 @@ public class GmcPackageManager extends ApplicationPackageManager {
         if (GmsCompat.isPlayStore()) {
             // "Play Services for AR"
             pseudoDisabledPackages.add("com.google.ar.core");
+            // "Device configuration"
+            pseudoDisabledPackages.add("android.autoinstalls.config.google.nexus");
         }
 
         if (GmsCompat.isAndroidAuto()) {
