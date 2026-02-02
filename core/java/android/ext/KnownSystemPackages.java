@@ -26,6 +26,7 @@ public final class KnownSystemPackages {
     @NonNull public final String mediaProvider;
     @NonNull public final String permissionController;
     @NonNull public final String settings;
+    @NonNull public final String setupWizard;
     @NonNull public final String shell;
     @NonNull public final String systemUi;
 
@@ -36,6 +37,7 @@ public final class KnownSystemPackages {
         mediaProvider = "com.android.providers.media.module";
         permissionController = "com.android.permissioncontroller";
         settings = "com.android.settings";
+        setupWizard = "app.grapheneos.setupwizard";
         shell = "com.android.shell";
         systemUi = res.getString(R.string.config_systemUi);
     }
@@ -46,6 +48,7 @@ public final class KnownSystemPackages {
             case KnownSystemPackage.SETTINGS -> settings;
             case KnownSystemPackage.SHELL -> shell;
             case KnownSystemPackage.SYSTEM_UI -> systemUi;
+            case KnownSystemPackage.SETUP_WIZARD -> setupWizard;
             default -> throw new IllegalArgumentException();
         };
     }
