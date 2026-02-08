@@ -27,6 +27,7 @@ public interface DerivedPackageFlag {
     int HAS_READ_CONTACTS_DECLARATION = 1 << 20;
     int HAS_WRITE_CONTACTS_DECLARATION = 1 << 21;
     int HAS_GET_ACCOUNTS_DECLARATION = 1 << 22;
+    int HAS_RECORD_AUDIO_DECLARATION = 1 << 23;
 
     /** @hide */
     @IntDef(flag = true, value = {
@@ -47,6 +48,7 @@ public interface DerivedPackageFlag {
             HAS_READ_CONTACTS_DECLARATION,
             HAS_WRITE_CONTACTS_DECLARATION,
             HAS_GET_ACCOUNTS_DECLARATION,
+            HAS_RECORD_AUDIO_DECLARATION,
     })
     @Retention(RetentionPolicy.SOURCE)
     @interface Enum {}

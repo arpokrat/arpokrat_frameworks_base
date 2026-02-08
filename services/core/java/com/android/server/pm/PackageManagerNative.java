@@ -20,9 +20,13 @@ import static android.content.pm.PackageManager.CERT_INPUT_SHA256;
 
 import static com.android.server.pm.PackageManagerService.TAG;
 
+import android.annotation.Nullable;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.GosPackageState;
+import android.content.pm.GosPackageStateFlag;
 import android.content.pm.IPackageManagerNative;
 import android.content.pm.IStagedApexObserver;
+import android.content.pm.MicrophoneScopeInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageInfoNative;
 import android.content.pm.PackageManager;
@@ -37,6 +41,13 @@ import android.system.virtualmachine.BuildFlags;
 import android.text.TextUtils;
 import android.util.Slog;
 
+import com.android.server.pm.pkg.PackageStateInternal;
+
+import android.os.SELinux;
+
+import android.system.Os;
+
+import java.io.File;
 import java.util.Arrays;
 
 final class PackageManagerNative extends IPackageManagerNative.Stub {
@@ -259,5 +270,88 @@ final class PackageManagerNative extends IPackageManagerNative.Stub {
 
         com.android.server.ext.MissingSpecialRuntimePermissionNotification
                 .maybeShow(mPm.getContext(), permissionName, uid, packageName);
+    }
+
+    @Override
+    @Nullable
+    public MicrophoneScopeInfo getMicrophoneScopeInfo(int uid, int userId) throws RemoteException {
+        final String micScopesDir = "/data/system/microphone_scopes/";
+        int callingUid = Binder.getCallingUid();
+        if (callingUid != android.os.Process.SYSTEM_UID
+                && callingUid != android.os.Process.AUDIOSERVER_UID
+                && callingUid != android.os.Process.MEDIA_UID) {
+            Slog.e(TAG, "getMicrophoneScopeInfo not allowed from uid " + callingUid);
+            throw new SecurityException("getMicrophoneScopeInfo not allowed from uid " + callingUid);
+        }
+        Slog.i(TAG, "getMicrophoneScopeInfo called for uid=" + uid + ", userId=" + userId + " from callingUid=" + callingUid);
+
+        final Computer snapshot = mPm.snapshotComputer();
+        String[] packages = snapshot.getPackagesForUid(uid);
+        if (packages == null || packages.length == 0) {
+            return null;
+        }
+
+        for (String packageName : packages) {
+            PackageStateInternal psi = snapshot.getPackageStates().get(packageName);
+            if (psi == null) {
+                continue;
+            }
+            GosPackageState gps = psi.getUserStateOrDefault(userId).getGosPackageState();
+            if (gps != null && gps.hasFlag(GosPackageStateFlag.MICROPHONE_SCOPES_ENABLED)) {
+                Slog.i(TAG, "getMicrophoneScopeInfo: microphone scopes enabled for " + packageName);
+                MicrophoneScopeInfo info = new MicrophoneScopeInfo();
+                info.enabled = true;
+
+                File baseDir = new File(micScopesDir);
+                File audioDir = new File(baseDir, userId + "/" + packageName);
+                File audioFile = new File(audioDir, "audio.dat");
+
+                byte[] scopeData = gps.microphoneScopes;
+                if (scopeData != null && scopeData.length > 0) {
+                    java.io.DataInputStream dis = new java.io.DataInputStream(
+                            new java.io.ByteArrayInputStream(scopeData));
+                    try {
+                        String uriString = dis.readUTF();
+                        String resolvedPath = null;
+                        try {
+                            resolvedPath = dis.readUTF();
+                        } catch (Exception e) {
+                            // old format without resolved path
+                        }
+
+                        if (resolvedPath != null) {
+                            if (resolvedPath.startsWith("/storage/emulated/")) {
+                                resolvedPath = resolvedPath.replaceFirst(
+                                        "/storage/emulated/", "/data/media/");
+                            }
+
+                            audioFile.delete();
+
+                            baseDir.mkdir();
+                            baseDir.setExecutable(true, false);
+                            new File(baseDir, String.valueOf(userId)).mkdir();
+                            new File(baseDir, String.valueOf(userId)).setExecutable(true, false);
+                            audioDir.mkdir();
+                            audioDir.setExecutable(true, false);
+
+                            Os.symlink(resolvedPath, audioFile.getAbsolutePath());
+                            SELinux.restoreconRecursive(baseDir);
+                            Slog.i(TAG, "Created symlink " + audioFile.getAbsolutePath() + " -> " + resolvedPath);
+
+                            info.audioFilePath = audioFile.getAbsolutePath();
+                            Slog.i(TAG, "Returning audio file path: " + info.audioFilePath);
+                        }
+                    } catch (Exception e) {
+                        Slog.w(TAG, "Failed to create microphone scope audio symlink", e);
+                    }
+                } else {
+                    audioFile.delete();
+                }
+
+                return info;
+            }
+        }
+
+        return null;
     }
 }

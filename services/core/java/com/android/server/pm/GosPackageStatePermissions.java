@@ -27,6 +27,7 @@ import static android.content.pm.GosPackageStateFlag.BLOCK_NATIVE_DEBUGGING_NON_
 import static android.content.pm.GosPackageStateFlag.BLOCK_NATIVE_DEBUGGING_SUPPRESS_NOTIF;
 import static android.content.pm.GosPackageStateFlag.BLOCK_PLAY_INTEGRITY_API;
 import static android.content.pm.GosPackageStateFlag.CONTACT_SCOPES_ENABLED;
+import static android.content.pm.GosPackageStateFlag.MICROPHONE_SCOPES_ENABLED;
 import static android.content.pm.GosPackageStateFlag.ENABLE_EXPLOIT_PROTECTION_COMPAT_MODE;
 import static android.content.pm.GosPackageStateFlag.FORCE_MEMTAG;
 import static android.content.pm.GosPackageStateFlag.FORCE_MEMTAG_NON_DEFAULT;
@@ -49,6 +50,7 @@ import static android.content.pm.GosPackageStateFlag.USE_HARDENED_MALLOC_NON_DEF
 import static com.android.server.pm.GosPackageStatePermission.ALLOW_CROSS_USER_PROFILE_READS;
 import static com.android.server.pm.GosPackageStatePermission.ALLOW_CROSS_USER_PROFILE_WRITES;
 import static com.android.server.pm.GosPackageStatePermission.FIELD_CONTACT_SCOPES;
+import static com.android.server.pm.GosPackageStatePermission.FIELD_MICROPHONE_SCOPES;
 import static com.android.server.pm.GosPackageStatePermission.FIELD_PACKAGE_FLAGS;
 import static com.android.server.pm.GosPackageStatePermission.FIELD_STORAGE_SCOPES;
 
@@ -76,7 +78,7 @@ class GosPackageStatePermissions {
 
         selfAccessPermission = builder()
                 .readFlags(STORAGE_SCOPES_ENABLED, ALLOW_ACCESS_TO_OBB_DIRECTORY,
-                        CONTACT_SCOPES_ENABLED)
+                        CONTACT_SCOPES_ENABLED, MICROPHONE_SCOPES_ENABLED)
                 .readFlags(playIntegrityFlags)
                 .readWriteFlag(PLAY_INTEGRITY_API_USED_AT_LEAST_ONCE)
                 .create();
@@ -103,13 +105,13 @@ class GosPackageStatePermissions {
                 .readField(FIELD_CONTACT_SCOPES)
                 .apply(ksp.contactsProvider, computer);
         builder()
-                .readFlags(STORAGE_SCOPES_ENABLED, CONTACT_SCOPES_ENABLED)
+                .readFlags(STORAGE_SCOPES_ENABLED, CONTACT_SCOPES_ENABLED, MICROPHONE_SCOPES_ENABLED)
                 // user profiles are handled by the launcher instance in profile parent user
                 .crossUserPermission(ALLOW_CROSS_USER_PROFILE_READS)
                 .apply(ksp.launcher, computer);
         builder()
-                .readWriteFlags(STORAGE_SCOPES_ENABLED, CONTACT_SCOPES_ENABLED)
-                .readWriteFields(FIELD_STORAGE_SCOPES, FIELD_CONTACT_SCOPES,
+                .readWriteFlags(STORAGE_SCOPES_ENABLED, CONTACT_SCOPES_ENABLED, MICROPHONE_SCOPES_ENABLED)
+                .readWriteFields(FIELD_STORAGE_SCOPES, FIELD_CONTACT_SCOPES, FIELD_MICROPHONE_SCOPES,
                         FIELD_PACKAGE_FLAGS)
                 // in some cases PermissionController handles user profile from profile parent user
                 .crossUserPermission(ALLOW_CROSS_USER_PROFILE_READS)
@@ -144,7 +146,7 @@ class GosPackageStatePermissions {
         builder()
                 .readWriteFlags(settingsReadWriteFlags)
                 .readWriteFlags(playIntegrityFlags)
-                .readFlags(STORAGE_SCOPES_ENABLED, CONTACT_SCOPES_ENABLED)
+                .readFlags(STORAGE_SCOPES_ENABLED, CONTACT_SCOPES_ENABLED, MICROPHONE_SCOPES_ENABLED)
                 .readFields(FIELD_PACKAGE_FLAGS)
                 .crossUserPermission(ALLOW_CROSS_USER_PROFILE_READS)
                 .crossUserPermission(ALLOW_CROSS_USER_PROFILE_WRITES)

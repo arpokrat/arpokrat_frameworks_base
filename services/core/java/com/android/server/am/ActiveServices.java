@@ -187,6 +187,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManagerInternal;
 import android.content.pm.ParceledListSlice;
 import android.content.pm.ResolveInfo;
+import android.content.pm.GosPackageState;
+import android.content.pm.GosPackageStateFlag;
 import android.content.pm.ServiceInfo;
 import android.content.pm.ServiceInfo.ForegroundServiceType;
 import android.os.Build;
@@ -2644,13 +2646,34 @@ public final class ActiveServices {
                         }
                         fgsTypeCheckCode = fgsTypeResult.first;
                         if (fgsTypeResult.second != null) {
-                            logFGSStateChangeLocked(r,
-                                    FOREGROUND_SERVICE_STATE_CHANGED__STATE__DENIED,
-                                    0, FGS_STOP_REASON_UNKNOWN, fgsTypeResult.first,
-                                    FOREGROUND_SERVICE_STATE_CHANGED__FGS_START_API__FGSSTARTAPI_NA,
-                                    false /* fgsRestrictionRecalculated */
-                            );
-                            throw fgsTypeResult.second;
+                            if ((foregroundServiceType
+                                    & ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE) != 0) {
+                                int userId = UserHandle.getUserId(r.appInfo.uid);
+                                GosPackageState gosPs = GosPackageState.get(
+                                        r.packageName, userId);
+                                if (gosPs.hasFlag(
+                                        GosPackageStateFlag.MICROPHONE_SCOPES_ENABLED)) {
+                                    Slog.i(TAG, "Allowing microphone FGS for app with"
+                                            + " microphone scopes: " + r.packageName);
+                                    fgsTypeCheckCode = FGS_TYPE_POLICY_CHECK_OK;
+                                } else {
+                                    logFGSStateChangeLocked(r,
+                                            FOREGROUND_SERVICE_STATE_CHANGED__STATE__DENIED,
+                                            0, FGS_STOP_REASON_UNKNOWN, fgsTypeResult.first,
+                                            FOREGROUND_SERVICE_STATE_CHANGED__FGS_START_API__FGSSTARTAPI_NA,
+                                            false /* fgsRestrictionRecalculated */
+                                    );
+                                    throw fgsTypeResult.second;
+                                }
+                            } else {
+                                logFGSStateChangeLocked(r,
+                                        FOREGROUND_SERVICE_STATE_CHANGED__STATE__DENIED,
+                                        0, FGS_STOP_REASON_UNKNOWN, fgsTypeResult.first,
+                                        FOREGROUND_SERVICE_STATE_CHANGED__FGS_START_API__FGSSTARTAPI_NA,
+                                        false /* fgsRestrictionRecalculated */
+                                );
+                                throw fgsTypeResult.second;
+                            }
                         }
                     }
                 }

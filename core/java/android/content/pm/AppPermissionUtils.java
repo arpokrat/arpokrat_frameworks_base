@@ -21,6 +21,7 @@ import android.annotation.SystemApi;
 import android.app.compat.gms.GmsCompat;
 
 import com.android.internal.app.ContactScopes;
+import com.android.internal.app.MicrophoneScopes;
 import com.android.internal.app.StorageScopesAppHooks;
 import com.android.internal.gmscompat.GmsHooks;
 
@@ -47,6 +48,10 @@ public class AppPermissionUtils {
             return true;
         }
 
+        if (MicrophoneScopes.shouldSpoofSelfPermissionCheck(permName)) {
+            return true;
+        }
+
         if (GmsCompat.isEnabled()) {
             if (GmsHooks.config().shouldSpoofSelfPermissionCheck(permName)) {
                 return true;
@@ -67,6 +72,10 @@ public class AppPermissionUtils {
         }
 
         if (ContactScopes.shouldSpoofSelfAppOpCheck(op)) {
+            return true;
+        }
+
+        if (MicrophoneScopes.shouldSpoofSelfAppOpCheck(op)) {
             return true;
         }
 
@@ -103,6 +112,13 @@ public class AppPermissionUtils {
 
         if (ps.hasFlag(GosPackageStateFlag.CONTACT_SCOPES_ENABLED)) {
             int permDflag = ContactScopes.getSpoofablePermissionDflag(perm);
+            if (permDflag != 0) {
+                return permDflag;
+            }
+        }
+
+        if (ps.hasFlag(GosPackageStateFlag.MICROPHONE_SCOPES_ENABLED)) {
+            int permDflag = MicrophoneScopes.getSpoofablePermissionDflag(perm);
             if (permDflag != 0) {
                 return permDflag;
             }
