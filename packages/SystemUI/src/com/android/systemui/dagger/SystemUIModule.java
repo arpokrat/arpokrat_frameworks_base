@@ -82,6 +82,7 @@ import com.android.systemui.keyevent.data.repository.KeyEventRepositoryModule;
 import com.android.systemui.keyguard.data.quickaffordance.KeyguardDataQuickAffordanceModule;
 import com.android.systemui.keyguard.shared.quickaffordance.KeyguardQuickAffordancesMetricsLogger;
 import com.android.systemui.keyguard.shared.quickaffordance.KeyguardQuickAffordancesMetricsLoggerImpl;
+import com.android.systemui.keyguard.smartspace.LockscreenSmartspaceDatePlugin;
 import com.android.systemui.keyguard.ui.composable.LockscreenContent;
 import com.android.systemui.log.dagger.LogModule;
 import com.android.systemui.log.dagger.MonitorLog;
@@ -401,6 +402,10 @@ public abstract class SystemUIModule {
     @BindsOptionalOf
     @Named(SmartspaceModule.DATE_SMARTSPACE_DATA_PLUGIN)
     abstract BcSmartspaceDataPlugin optionalDateSmartspaceConfigPlugin();
+
+    @Binds
+    @Named(SmartspaceModule.DATE_SMARTSPACE_DATA_PLUGIN)
+    abstract BcSmartspaceDataPlugin bindBcSmartspaceDatePlugin(LockscreenSmartspaceDatePlugin impl);
 
     @BindsOptionalOf
     @Named(SmartspaceModule.WEATHER_SMARTSPACE_DATA_PLUGIN)
