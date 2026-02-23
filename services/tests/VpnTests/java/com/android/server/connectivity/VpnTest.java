@@ -223,7 +223,7 @@ import java.util.regex.Pattern;
  * Tests for {@link Vpn}.
  *
  * Build, install and run with:
- *  runtest frameworks-net -c com.android.server.connectivity.VpnTest
+ *  atest -c com.android.server.connectivity.VpnTest
  */
 @RunWith(AndroidJUnit4.class)
 @SmallTest
