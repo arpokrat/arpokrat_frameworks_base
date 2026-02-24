@@ -136,6 +136,7 @@ import android.util.ArraySet;
 import android.util.IndentingPrintWriter;
 import android.util.LocalLog;
 import android.util.Log;
+import android.util.Pair;
 import android.util.Range;
 import android.util.SparseArray;
 
@@ -448,6 +449,8 @@ public class Vpn {
      */
     @GuardedBy("this")
     private final Set<UidRangeParcel> mBlockedUidsAsToldToConnectivity = new ArraySet<>();
+    @GuardedBy("this")
+    private final Set<UidRangeParcel> mStrictBlockedUidsAsToldToConnectivity = new ArraySet<>();
 
     // The user id of initiating VPN.
     private final int mUserId;
@@ -2099,13 +2102,11 @@ public class Vpn {
     }
 
     /**
-     * Restricts network access from all UIDs affected by this {@link Vpn}, apart from the VPN
-     * service app itself and allowed packages, to only sockets that have had {@code protect()}
-     * called on them. All non-VPN traffic is blocked via a {@code PROHIBIT} response from the
-     * kernel.
+     * Restricts network access from all UIDs affected by this {@link Vpn}, apart from allowed
+     * packages, to only sockets that have had {@code protect()} called on them. All non-VPN traffic
+     * is blocked via a {@code PROHIBIT} response from the kernel.
      *
-     * The exception for the VPN UID isn't technically necessary -- setup should use protected
-     * sockets -- but in practice it saves apps that don't protect their sockets from breaking.
+     * An exception for the VPN UID isn't necessary -- setup should use protected sockets.
      *
      * Calling multiple times with {@param enforce} = {@code true} will recreate the set of UIDs to
      * block every time, and if anything has changed update using {@link #setAllowOnlyVpnForUids}.
@@ -2118,14 +2119,28 @@ public class Vpn {
      */
     @GuardedBy("this")
     private void setVpnForcedLocked(boolean enforce) {
+        Pair<Set<UidRangeParcel>, Set<UidRangeParcel>> ranges = createBlockedUidRanges(enforce,
+                false);
+        Pair<Set<UidRangeParcel>, Set<UidRangeParcel>> strictRanges = createBlockedUidRanges(
+                enforce, true);
+
+        setAllowOnlyVpnForUids(false, ranges.first, strictRanges.first);
+        setAllowOnlyVpnForUids(true, ranges.second, strictRanges.second);
+    }
+
+    @GuardedBy("this")
+    private Pair<Set<UidRangeParcel>, Set<UidRangeParcel>> createBlockedUidRanges(boolean enforce,
+            boolean strict) {
         final List<String> exemptedPackages;
         if (isNullOrLegacyVpn(mPackage)) {
             exemptedPackages = null;
         } else {
             exemptedPackages = new ArrayList<>(mLockdownAllowlist);
-            exemptedPackages.add(mPackage);
+            if (!strict) {
+                exemptedPackages.add(mPackage);
+            }
         }
-        final Set<UidRangeParcel> rangesToRemove = new ArraySet<>(mBlockedUidsAsToldToConnectivity);
+        final Set<UidRangeParcel> rangesToRemove = new ArraySet<>(getBlockedUids(strict));
         final Set<UidRangeParcel> rangesToAdd;
         if (enforce) {
             final Set<Range<Integer>> restrictedProfilesRanges =
@@ -2152,15 +2167,16 @@ public class Vpn {
             // minus the ones it already knows to block. Note that this will change the contents of
             // rangesThatShouldBeBlocked, but the list of ranges that should be blocked is
             // not used after this so it's fine to destroy it.
-            rangesToAdd.removeAll(mBlockedUidsAsToldToConnectivity);
+            rangesToAdd.removeAll(getBlockedUids(strict));
         } else {
             rangesToAdd = Collections.emptySet();
         }
 
-        // If mBlockedUidsAsToldToNetd used to be empty, this will always be a no-op.
-        setAllowOnlyVpnForUids(false, rangesToRemove);
-        // If nothing should be blocked now, this will now be a no-op.
-        setAllowOnlyVpnForUids(true, rangesToAdd);
+        return new Pair<>(rangesToRemove, rangesToAdd);
+    }
+
+    private Set<UidRangeParcel> getBlockedUids(boolean strict) {
+        return strict ? mStrictBlockedUidsAsToldToConnectivity : mBlockedUidsAsToldToConnectivity;
     }
 
     /**
@@ -2171,30 +2187,46 @@ public class Vpn {
      * @param enforce {@code true} to add to the denylist, {@code false} to remove.
      * @param ranges {@link Collection} of {@link UidRangeParcel}s to add (if {@param enforce} is
      *               {@code true}) or to remove.
+     * @param strictRanges {@link Collection} of {@link UidRangeParcel}s to add (if {@param enforce} is
+     *               {@code true}) or to remove. Differs from {@param ranges} in that the VPN app
+     *               uid itself is not exempted from the ranges (when not using the legacy VPN).
      * @return {@code true} if all of the UIDs were added/removed. {@code false} otherwise,
      *         including added ranges that already existed or removed ones that didn't.
      */
     @GuardedBy("this")
-    private boolean setAllowOnlyVpnForUids(boolean enforce, Collection<UidRangeParcel> ranges) {
-        if (ranges.size() == 0) {
+    private boolean setAllowOnlyVpnForUids(boolean enforce,
+            Collection<UidRangeParcel> ranges, Collection<UidRangeParcel> strictRanges) {
+        if (ranges.isEmpty() && strictRanges.isEmpty()) {
             return true;
         }
+
         // Convert to Collection<Range> which is what the ConnectivityManager API takes.
         ArrayList<Range<Integer>> integerRanges = new ArrayList<>(ranges.size());
         for (UidRangeParcel uidRange : ranges) {
             integerRanges.add(new Range<>(uidRange.start, uidRange.stop));
         }
+
+        ArrayList<Range<Integer>> strictIntegerRanges = new ArrayList<>(strictRanges.size());
+        for (UidRangeParcel uidRange : strictRanges) {
+            strictIntegerRanges.add(new Range<>(uidRange.start, uidRange.stop));
+        }
+
         try {
-            mConnectivityManager.setRequireVpnForUids(enforce, integerRanges);
+            mConnectivityManager.setRequireVpnForUids2(enforce, integerRanges, strictIntegerRanges);
+
         } catch (RuntimeException e) {
             Log.e(TAG, "Updating blocked=" + enforce
-                    + " for UIDs " + Arrays.toString(ranges.toArray()) + " failed", e);
+                    + " for UIDs " + Arrays.toString(ranges.toArray()) + ", and strict UIDS " +
+                    Arrays.toString(strictRanges.toArray()) + " failed", e);
             return false;
         }
+
         if (enforce) {
             mBlockedUidsAsToldToConnectivity.addAll(ranges);
+            mStrictBlockedUidsAsToldToConnectivity.addAll(strictRanges);
         } else {
             mBlockedUidsAsToldToConnectivity.removeAll(ranges);
+            mStrictBlockedUidsAsToldToConnectivity.removeAll(strictRanges);
         }
         return true;
     }
