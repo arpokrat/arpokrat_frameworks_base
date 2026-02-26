@@ -16,17 +16,11 @@ public class LockscreenSmartspaceWeatherPlugin extends BaseSmartspaceDataPlugin 
 
     @Override
     public SmartspaceView getView(Context context) {
-        LockscreenSmartspacePlaceholderView v = new LockscreenSmartspacePlaceholderView(context);
-        // ID comes from com.android.systemui.keyguard.ui.view.layout.sections.SmartspaceSection.
-        v.setId(R.id.weather_smartspace_view);
-        return v;
+        return new LockscreenSmartspacePlaceholderView(context, R.id.weather_smartspace_view);
     }
 
     @Override
     public SmartspaceView getLargeClockView(Context context) {
-        LockscreenSmartspacePlaceholderView v = new LockscreenSmartspacePlaceholderView(context);
-        // ID comes from com.android.systemui.keyguard.ui.view.layout.sections.SmartspaceSection.
-        v.setId(R.id.weather_smartspace_view_large);
-        return v;
+        return new LockscreenSmartspacePlaceholderView(context, R.id.weather_smartspace_view_large);
     }
 }

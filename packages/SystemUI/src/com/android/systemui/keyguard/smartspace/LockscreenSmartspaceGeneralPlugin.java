@@ -21,7 +21,7 @@ public class LockscreenSmartspaceGeneralPlugin extends BaseSmartspaceDataPlugin 
 
     @Override
     public SmartspaceView getView(Context context) {
-        return (LockscreenSmartspaceGeneralView)mLayoutInflater.inflate(
+        return (LockscreenSmartspaceGeneralView) mLayoutInflater.inflate(
                 R.layout.lockscreen_smartspace_general_view, null, false);
     }
 }
