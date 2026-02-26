@@ -1,6 +1,7 @@
 package com.android.systemui.keyguard.smartspace;
 
 import android.app.smartspace.SmartspaceTarget;
+import android.content.ComponentName;
 import android.os.Parcelable;
 
 import com.android.systemui.plugins.BcSmartspaceDataPlugin;
@@ -56,12 +57,10 @@ public class LockscreenSmartspaceGeneralViewController extends
 
     @Override
     public void onSmartspaceTargetsUpdated(List<? extends Parcelable> targets) {
-        SmartspaceTarget target;
+        var lsgv = new ComponentName(getContext(), LockscreenSmartspaceGeneralView.class);
         for (Parcelable parcelable : targets) {
-            if (parcelable instanceof SmartspaceTarget) {
-                target = (SmartspaceTarget) parcelable;
-                if (target.getComponentName().equals(
-                        LockscreenSmartspaceGeneralView.componentName)) {
+            if (parcelable instanceof SmartspaceTarget target) {
+                if (lsgv.equals(target.getComponentName())) {
                     mView.showTarget(target);
                 }
             }

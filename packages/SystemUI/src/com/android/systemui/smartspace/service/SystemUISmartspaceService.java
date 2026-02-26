@@ -306,7 +306,7 @@ public class SystemUISmartspaceService extends SmartspaceService implements
 
     private SmartspaceTarget.Builder createLockscreenGeneralTargetBuilder() {
         String identifier = UUID.randomUUID().toString();
-        ComponentName componentName = LockscreenSmartspaceGeneralView.componentName;
+        var componentName = new ComponentName(this, LockscreenSmartspaceGeneralView.class);
         UserHandle user = mUserTracker.getUserHandle();
         return new SmartspaceTarget.Builder(identifier, componentName, user);
     }

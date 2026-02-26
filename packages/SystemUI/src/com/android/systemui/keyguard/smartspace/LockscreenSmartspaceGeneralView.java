@@ -30,8 +30,6 @@ import java.util.List;
  * reimplementation of the legacy KeyguardSliceView.
  */
 public class LockscreenSmartspaceGeneralView extends LinearLayout implements DefaultSmartspaceView {
-    public static final ComponentName componentName = ComponentName.createRelative(
-            "com.android.systemui", "keyguard.smartspace.LockscreenSmartspaceGeneralView");
 
     private static final int DARK_AMOUNT = 0;
 
