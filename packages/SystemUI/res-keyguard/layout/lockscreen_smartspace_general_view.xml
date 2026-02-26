@@ -9,10 +9,11 @@
     android:layout_gravity="start"
     android:clipToPadding="false"
     android:orientation="vertical">
-    <view class="com.android.systemui.keyguard.smartspace.LockscreenSmartspaceGeneralView$Row"
-              android:id="@+id/row"
+    <view class="com.android.systemui.keyguard.smartspace.LockscreenSmartspaceGeneralView$Rows"
+              android:id="@+id/rows"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
+              android:layout_gravity="start"
               android:orientation="vertical"
               android:gravity="start"
     />
