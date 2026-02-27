@@ -173,7 +173,9 @@ public class GosPackageStatePmHooks {
             return;
         }
 
-        if (!gosPs.hasFlag(GosPackageStateFlag.STORAGE_SCOPES_ENABLED) && !gosPs.hasFlag(GosPackageStateFlag.CONTACT_SCOPES_ENABLED)) {
+        if (!gosPs.hasFlag(GosPackageStateFlag.STORAGE_SCOPES_ENABLED)
+                && !gosPs.hasFlag(GosPackageStateFlag.CONTACT_SCOPES_ENABLED)
+                && !gosPs.hasFlag(GosPackageStateFlag.MICROPHONE_SCOPES_ENABLED)) {
             return;
         }
 
@@ -275,6 +277,10 @@ public class GosPackageStatePmHooks {
 
                 case Manifest.permission.GET_ACCOUNTS:
                     flags |= DerivedPackageFlag.HAS_GET_ACCOUNTS_DECLARATION;
+                    continue;
+
+                case Manifest.permission.RECORD_AUDIO:
+                    flags |= DerivedPackageFlag.HAS_RECORD_AUDIO_DECLARATION;
                     continue;
             }
         }

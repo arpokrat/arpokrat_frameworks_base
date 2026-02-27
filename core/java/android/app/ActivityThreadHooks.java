@@ -12,6 +12,7 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.android.internal.app.ContactScopes;
+import com.android.internal.app.MicrophoneScopes;
 import com.android.internal.app.StorageScopesAppHooks;
 import com.android.internal.gmscompat.GmsHooks;
 
@@ -74,6 +75,7 @@ class ActivityThreadHooks {
     static void onGosPackageStateChanged(Context ctx, GosPackageState state, boolean fromBind) {
         StorageScopesAppHooks.maybeEnable(state);
         ContactScopes.maybeEnable(ctx, state);
+        MicrophoneScopes.maybeEnable(ctx, state);
     }
 
     static Service instantiateService(String className) {

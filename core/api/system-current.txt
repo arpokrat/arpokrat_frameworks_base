@@ -4366,6 +4366,7 @@ package android.content.pm {
     method public void writeToParcel(@NonNull android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.content.pm.GosPackageState> CREATOR;
     field @Nullable public final byte[] contactScopes;
+    field @Nullable public final byte[] microphoneScopes;
     field @Nullable public final byte[] storageScopes;
   }
 
@@ -4379,6 +4380,7 @@ package android.content.pm {
     method @NonNull public android.content.pm.GosPackageState.Editor setContactScopes(@Nullable byte[]);
     method @NonNull public android.content.pm.GosPackageState.Editor setFlagState(int, boolean);
     method @NonNull public android.content.pm.GosPackageState.Editor setKillUidAfterApply(boolean);
+    method @NonNull public android.content.pm.GosPackageState.Editor setMicrophoneScopes(@Nullable byte[]);
     method @NonNull public android.content.pm.GosPackageState.Editor setNotifyUidAfterApply(boolean);
     method @NonNull public android.content.pm.GosPackageState.Editor setPackageFlagState(int, boolean);
     method @NonNull public android.content.pm.GosPackageState.Editor setStorageScopes(@Nullable byte[]);
@@ -4386,6 +4388,7 @@ package android.content.pm {
 
   public interface GosPackageStateFlag {
     field public static final int CONTACT_SCOPES_ENABLED = 5; // 0x5
+    field public static final int MICROPHONE_SCOPES_ENABLED = 29; // 0x1d
     field public static final int STORAGE_SCOPES_ENABLED = 0; // 0x0
   }
 
@@ -5276,6 +5279,7 @@ package android.ext {
     field public static final int HAS_READ_MEDIA_IMAGES_DECLARATION = 1024; // 0x400
     field public static final int HAS_READ_MEDIA_VIDEO_DECLARATION = 2048; // 0x800
     field public static final int HAS_READ_MEDIA_VISUAL_USER_SELECTED_DECLARATION = 4096; // 0x1000
+    field public static final int HAS_RECORD_AUDIO_DECLARATION = 8388608; // 0x800000
     field public static final int HAS_WRITE_CONTACTS_DECLARATION = 2097152; // 0x200000
     field public static final int HAS_WRITE_EXTERNAL_STORAGE_DECLARATION = 32; // 0x20
   }
