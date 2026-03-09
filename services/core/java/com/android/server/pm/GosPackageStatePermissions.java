@@ -27,6 +27,7 @@ import static android.content.pm.GosPackageStateFlag.BLOCK_NATIVE_DEBUGGING_NON_
 import static android.content.pm.GosPackageStateFlag.BLOCK_NATIVE_DEBUGGING_SUPPRESS_NOTIF;
 import static android.content.pm.GosPackageStateFlag.BLOCK_PLAY_INTEGRITY_API;
 import static android.content.pm.GosPackageStateFlag.CONTACT_SCOPES_ENABLED;
+import static android.content.pm.GosPackageStateFlag.MIC_SPOOFING_ENABLED;
 import static android.content.pm.GosPackageStateFlag.ENABLE_EXPLOIT_PROTECTION_COMPAT_MODE;
 import static android.content.pm.GosPackageStateFlag.FORCE_MEMTAG;
 import static android.content.pm.GosPackageStateFlag.FORCE_MEMTAG_NON_DEFAULT;
@@ -49,6 +50,7 @@ import static android.content.pm.GosPackageStateFlag.USE_HARDENED_MALLOC_NON_DEF
 import static com.android.server.pm.GosPackageStatePermission.ALLOW_CROSS_USER_PROFILE_READS;
 import static com.android.server.pm.GosPackageStatePermission.ALLOW_CROSS_USER_PROFILE_WRITES;
 import static com.android.server.pm.GosPackageStatePermission.FIELD_CONTACT_SCOPES;
+import static com.android.server.pm.GosPackageStatePermission.FIELD_MIC_SPOOFING_CONFIG;
 import static com.android.server.pm.GosPackageStatePermission.FIELD_PACKAGE_FLAGS;
 import static com.android.server.pm.GosPackageStatePermission.FIELD_STORAGE_SCOPES;
 
@@ -76,7 +78,7 @@ class GosPackageStatePermissions {
 
         selfAccessPermission = builder()
                 .readFlags(STORAGE_SCOPES_ENABLED, ALLOW_ACCESS_TO_OBB_DIRECTORY,
-                        CONTACT_SCOPES_ENABLED)
+                        CONTACT_SCOPES_ENABLED, MIC_SPOOFING_ENABLED)
                 .readFlags(playIntegrityFlags)
                 .readWriteFlag(PLAY_INTEGRITY_API_USED_AT_LEAST_ONCE)
                 .create();
@@ -95,22 +97,23 @@ class GosPackageStatePermissions {
 
         KnownSystemPackages ksp = KnownSystemPackages.get(pm.getContext());
         builder()
-                .readFlag(STORAGE_SCOPES_ENABLED)
-                .readField(FIELD_STORAGE_SCOPES)
+                .readFlags(STORAGE_SCOPES_ENABLED, MIC_SPOOFING_ENABLED)
+                .readFields(FIELD_STORAGE_SCOPES, FIELD_MIC_SPOOFING_CONFIG)
                 .apply(ksp.mediaProvider, computer);
         builder()
                 .readFlag(CONTACT_SCOPES_ENABLED)
                 .readField(FIELD_CONTACT_SCOPES)
                 .apply(ksp.contactsProvider, computer);
         builder()
-                .readFlags(STORAGE_SCOPES_ENABLED, CONTACT_SCOPES_ENABLED)
+                .readFlags(STORAGE_SCOPES_ENABLED, CONTACT_SCOPES_ENABLED, MIC_SPOOFING_ENABLED)
                 // user profiles are handled by the launcher instance in profile parent user
                 .crossUserPermission(ALLOW_CROSS_USER_PROFILE_READS)
                 .apply(ksp.launcher, computer);
         builder()
-                .readWriteFlags(STORAGE_SCOPES_ENABLED, CONTACT_SCOPES_ENABLED)
+                .readWriteFlags(STORAGE_SCOPES_ENABLED, CONTACT_SCOPES_ENABLED,
+                        MIC_SPOOFING_ENABLED)
                 .readWriteFields(FIELD_STORAGE_SCOPES, FIELD_CONTACT_SCOPES,
-                        FIELD_PACKAGE_FLAGS)
+                        FIELD_PACKAGE_FLAGS, FIELD_MIC_SPOOFING_CONFIG)
                 // in some cases PermissionController handles user profile from profile parent user
                 .crossUserPermission(ALLOW_CROSS_USER_PROFILE_READS)
                 .apply(ksp.permissionController, computer);
@@ -121,6 +124,7 @@ class GosPackageStatePermissions {
 
         @GosPackageStateFlag.Enum int[] settingsReadWriteFlags = {
                 ALLOW_ACCESS_TO_OBB_DIRECTORY,
+                MIC_SPOOFING_ENABLED,
                 BLOCK_NATIVE_DEBUGGING_NON_DEFAULT,
                 BLOCK_NATIVE_DEBUGGING,
                 BLOCK_NATIVE_DEBUGGING_SUPPRESS_NOTIF,
