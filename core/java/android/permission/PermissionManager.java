@@ -1153,6 +1153,10 @@ public final class PermissionManager {
      */
     //@SystemApi(client = SystemApi.Client.MODULE_LIBRARIES)
     public boolean shouldShowRequestPermissionRationale(@NonNull String permissionName) {
+        if (AppPermissionUtils.shouldSpoofSelfCheck(permissionName)) {
+            return false;
+        }
+
         try {
             final String packageName = mContext.getPackageName();
             return mPermissionManager.shouldShowRequestPermissionRationale(packageName,
