@@ -5396,6 +5396,23 @@ package android.ext.dcl {
 
 }
 
+package android.ext.micspoofing {
+
+  public final class MicSpoofingApi {
+    method @NonNull public static byte[] buildCustomPathConfig(@NonNull String);
+    method @NonNull public static byte[] buildDefaultConfig();
+    method @NonNull public static android.content.Intent createConfigActivityIntent(@NonNull String);
+    method @Nullable public static String getCustomAudioPathForApp(@NonNull String, int);
+    method @Nullable public static String getPath(@Nullable byte[]);
+    method public static int getSourceMode(@Nullable byte[]);
+    method @Nullable public static android.os.ParcelFileDescriptor openCustomSourceFdForSelf();
+    field public static final int MODE_CUSTOM_PATH = 1; // 0x1
+    field public static final int MODE_DEFAULT = 0; // 0x0
+    field public static final int VERSION = 1; // 0x1
+  }
+
+}
+
 package android.ext.settings {
 
   public class BoolSetting extends android.ext.settings.Setting<android.ext.settings.BoolSetting> {
@@ -20461,3 +20478,4 @@ package android.window {
   }
 
 }
+
