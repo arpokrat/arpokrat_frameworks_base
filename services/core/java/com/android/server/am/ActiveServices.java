@@ -183,6 +183,8 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.GosPackageState;
+import android.content.pm.GosPackageStateFlag;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManagerInternal;
 import android.content.pm.ParceledListSlice;
@@ -2248,7 +2250,14 @@ public final class ActiveServices {
                             r.app.getPid(), r.appInfo.uid, "startForeground");
                 }
             }
-            final int manifestType = r.serviceInfo.getForegroundServiceType();
+            final var isMicSpoofingEnabled = LocalServices.getService(PackageManagerInternal.class)
+                    .getGosPackageState(r.packageName, r.userId)
+                    .hasFlag(GosPackageStateFlag.MIC_SPOOFING_ENABLED);
+            final var micSpoofingExtraFgsType = isMicSpoofingEnabled ?
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED : 0;
+
+            final var manifestType = r.serviceInfo.getForegroundServiceType()
+                    | micSpoofingExtraFgsType;
             // If passed in foreground service type is FOREGROUND_SERVICE_TYPE_MANIFEST,
             // consider it is the same as manifest foreground service type.
             if (foregroundServiceType == FOREGROUND_SERVICE_TYPE_MANIFEST) {
@@ -2902,6 +2911,17 @@ public final class ActiveServices {
             @ForegroundServiceType int type,
             @ForegroundServiceType int defaultToType,
             @ForegroundServiceType int startType) {
+        if (type == ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED) {
+            final var isMicSpoofingEnabled = mAm
+                    .getPackageManagerInternal()
+                    .getGosPackageState(r.packageName, r.userId)
+                    .hasFlag(GosPackageStateFlag.MIC_SPOOFING_ENABLED);
+
+            if (isMicSpoofingEnabled) {
+                return Pair.create(FGS_TYPE_POLICY_CHECK_OK, null);
+            }
+        }
+
         final ForegroundServiceTypePolicy policy = ForegroundServiceTypePolicy.getDefaultPolicy();
         final ForegroundServiceTypePolicyInfo policyInfo =
                 policy.getForegroundServiceTypePolicyInfo(type, defaultToType);

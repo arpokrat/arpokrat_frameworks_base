@@ -1,5 +1,9 @@
 package android.ext.micspoofing;
 
+import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST;
+import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE;
+import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED;
+
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.SystemApi;
@@ -7,12 +11,15 @@ import android.app.ActivityThread;
 import android.app.Application;
 import android.app.ApplicationPackageManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.GosPackageState;
 import android.content.pm.GosPackageStateFlag;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
+import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
 import android.util.Log;
 import android.util.Slog;
 
@@ -142,5 +149,43 @@ public final class MicSpoofingApi {
             Log.w(TAG, "openCustomSourceFdForSelf: access denied for " + uri, e);
             return null;
         }
+    }
+
+    /** @hide */
+    public static int maybeReplaceFgServiceType(
+            @NonNull Context context,
+            @NonNull ComponentName service,
+            @ServiceInfo.ForegroundServiceType int fgsType
+    ) {
+        if (fgsType != FOREGROUND_SERVICE_TYPE_MANIFEST
+                && (fgsType & FOREGROUND_SERVICE_TYPE_MICROPHONE) == 0) {
+            return fgsType;
+        }
+
+        var isMicSpoofingEnabled = GosPackageState
+                .getForSelf(context)
+                .hasFlag(GosPackageStateFlag.MIC_SPOOFING_ENABLED);
+
+        if (!isMicSpoofingEnabled) {
+            return fgsType;
+        }
+
+        var effectiveFgsType = fgsType;
+        if (fgsType == FOREGROUND_SERVICE_TYPE_MANIFEST) {
+            ServiceInfo serviceInfo;
+            try {
+                serviceInfo = context.getPackageManager().getServiceInfo(service, 0);
+            } catch (PackageManager.NameNotFoundException e) {
+                Log.w(TAG, "getServiceInfo failed for " + service, e);
+                return fgsType;
+            }
+            effectiveFgsType = serviceInfo.getForegroundServiceType();
+            if ((effectiveFgsType & FOREGROUND_SERVICE_TYPE_MICROPHONE) == 0) {
+                return fgsType;
+            }
+        }
+
+        var result = effectiveFgsType & ~FOREGROUND_SERVICE_TYPE_MICROPHONE;
+        return result != 0 ? result : FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED;
     }
 }
