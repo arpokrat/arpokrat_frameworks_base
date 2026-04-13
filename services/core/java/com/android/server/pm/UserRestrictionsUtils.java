@@ -339,6 +339,11 @@ public class UserRestrictionsUtils {
             UserManager.DISALLOW_OUTGOING_CALLS
     );
 
+    public static final Set<String> USER_RESTRICTIONS_FALLBACK_TO_PARENT = Sets.newArraySet(
+            UserManager.DISALLOW_INSTALL_APPS,
+            UserManager.DISALLOW_INSTALL_UNKNOWN_SOURCES
+    );
+
     /**
      * Returns whether the given restriction name is valid (and logs it if it isn't).
      */
