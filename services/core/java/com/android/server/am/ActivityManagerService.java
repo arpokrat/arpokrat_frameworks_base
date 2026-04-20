@@ -20076,4 +20076,5 @@ public class ActivityManagerService extends IActivityManager.Stub
         }
         r.getWindowProcessController().setOptimizationInfo(compilerFilter, compilationReason);
     }
+
 }
