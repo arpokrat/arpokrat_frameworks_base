@@ -21,6 +21,7 @@ import static android.content.pm.PackageManager.CERT_INPUT_SHA256;
 import static com.android.server.pm.PackageManagerService.TAG;
 
 import android.content.pm.ApplicationInfo;
+import android.content.pm.GosPackageStateFlag;
 import android.content.pm.IPackageManagerNative;
 import android.content.pm.IStagedApexObserver;
 import android.content.pm.PackageInfo;
@@ -38,12 +39,22 @@ import android.text.TextUtils;
 import android.util.Slog;
 
 import java.util.Arrays;
+import java.util.function.IntSupplier;
 
 final class PackageManagerNative extends IPackageManagerNative.Stub {
     private final PackageManagerService mPm;
+    private final IntSupplier mCallingUidSupplier;
+    private final IntSupplier mLocalUidSupplier;
 
     PackageManagerNative(PackageManagerService pm) {
+        this(pm, Binder::getCallingUid, android.os.Process::myUid);
+    }
+
+    PackageManagerNative(PackageManagerService pm, IntSupplier callingUidSupplier,
+            IntSupplier localUidSupplier) {
         mPm = pm;
+        mCallingUidSupplier = callingUidSupplier;
+        mLocalUidSupplier = localUidSupplier;
     }
 
     @Override
@@ -259,5 +270,39 @@ final class PackageManagerNative extends IPackageManagerNative.Stub {
 
         com.android.server.ext.MissingSpecialRuntimePermissionNotification
                 .maybeShow(mPm.getContext(), permissionName, uid, packageName);
+    }
+
+    static boolean canAccessMicSpoofingStateForUid(int callingUid, int targetUid, int localUid) {
+        if (callingUid == targetUid || callingUid == localUid) {
+            return true;
+        }
+
+        var callingAppId = UserHandle.getAppId(callingUid);
+        return callingAppId == android.os.Process.SYSTEM_UID
+                || callingAppId == android.os.Process.MEDIA_UID
+                || callingAppId == android.os.Process.AUDIOSERVER_UID;
+    }
+
+    private void enforceMicSpoofingUidAccess(int uid) {
+        var callingUid = mCallingUidSupplier.getAsInt();
+        if (canAccessMicSpoofingStateForUid(callingUid, uid, mLocalUidSupplier.getAsInt())) {
+            return;
+        }
+
+        throw new SecurityException(
+                "UID " + callingUid + " cannot access mic spoofing state for UID " + uid);
+    }
+
+    @Override
+    public boolean isMicSpoofingEnabledForUid(int uid) {
+        enforceMicSpoofingUidAccess(uid);
+
+        var packages = mPm.snapshotComputer().getPackagesForUid(uid);
+        if (packages == null || packages.length == 0) {
+            return false;
+        }
+        var userId = UserHandle.getUserId(uid);
+        var gosPs = GosPackageStatePmHooks.getUnfiltered(mPm, packages[0], userId);
+        return gosPs.hasFlag(GosPackageStateFlag.MIC_SPOOFING_ENABLED);
     }
 }

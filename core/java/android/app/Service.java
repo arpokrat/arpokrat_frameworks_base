@@ -35,6 +35,7 @@ import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.content.pm.ServiceInfo.ForegroundServiceType;
 import android.content.res.Configuration;
+import android.ext.micspoofing.MicSpoofingApi;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -774,6 +775,12 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
     public final void startForeground(int id, Notification notification) {
         try {
             final ComponentName comp = new ComponentName(this, mClassName);
+            var fgsType = MicSpoofingApi
+                    .maybeReplaceFgServiceType(this, comp, FOREGROUND_SERVICE_TYPE_MANIFEST);
+            if (fgsType != FOREGROUND_SERVICE_TYPE_MANIFEST) {
+                startForeground(id, notification, fgsType);
+                return;
+            }
             mActivityManager.setServiceForeground(
                     comp, mToken, id,
                     notification, 0, FOREGROUND_SERVICE_TYPE_MANIFEST);
@@ -875,6 +882,8 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
 
         try {
             final ComponentName comp = new ComponentName(this, mClassName);
+            foregroundServiceType = MicSpoofingApi
+                    .maybeReplaceFgServiceType(this, comp, foregroundServiceType);
             mActivityManager.setServiceForeground(
                     comp, mToken, id,
                     notification, 0, foregroundServiceType);

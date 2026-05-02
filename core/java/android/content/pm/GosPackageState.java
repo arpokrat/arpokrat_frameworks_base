@@ -37,6 +37,8 @@ public final class GosPackageState implements Parcelable {
     public final byte[] storageScopes;
     @Nullable
     public final byte[] contactScopes;
+    @Nullable
+    public final byte[] micSpoofingConfig;
     /**
      * These flags are lazily derived from persistent state. They are intentionally skipped from
      * equals() and hashCode(). derivedFlags are stored here for performance reasons, to avoid
@@ -63,15 +65,17 @@ public final class GosPackageState implements Parcelable {
 
     /** @hide */
     public GosPackageState(long flagStorage1, long packageFlagStorage,
-                           @Nullable byte[] storageScopes, @Nullable byte[] contactScopes) {
+                           @Nullable byte[] storageScopes, @Nullable byte[] contactScopes,
+                           @Nullable byte[] micSpoofingConfig) {
         this.flagStorage1 = flagStorage1;
         this.packageFlagStorage = packageFlagStorage;
         this.storageScopes = storageScopes;
         this.contactScopes = contactScopes;
+        this.micSpoofingConfig = micSpoofingConfig;
     }
 
     private static GosPackageState createEmpty() {
-        return new GosPackageState(0L, 0L, null, null);
+        return new GosPackageState(0L, 0L, null, null, null);
     }
 
     private static final int TYPE_NONE = 0;
@@ -94,6 +98,7 @@ public final class GosPackageState implements Parcelable {
         dest.writeLong(this.packageFlagStorage);
         dest.writeByteArray(storageScopes);
         dest.writeByteArray(contactScopes);
+        dest.writeByteArray(micSpoofingConfig);
         dest.writeInt(derivedFlags);
     }
 
@@ -106,7 +111,7 @@ public final class GosPackageState implements Parcelable {
                 case TYPE_NONE: return NONE;
             };
             var res = new GosPackageState(in.readLong(), in.readLong(),
-                    in.createByteArray(), in.createByteArray());
+                    in.createByteArray(), in.createByteArray(), in.createByteArray());
             res.derivedFlags = in.readInt();
             return res;
         }
@@ -119,7 +124,7 @@ public final class GosPackageState implements Parcelable {
 
     @Override
     public int hashCode() {
-        return Long.hashCode(flagStorage1) + Arrays.hashCode(storageScopes) + Arrays.hashCode(contactScopes) + Long.hashCode(packageFlagStorage);
+        return Long.hashCode(flagStorage1) + Arrays.hashCode(storageScopes) + Arrays.hashCode(contactScopes) + Long.hashCode(packageFlagStorage) + Arrays.hashCode(micSpoofingConfig);
     }
 
     @Override
@@ -140,6 +145,9 @@ public final class GosPackageState implements Parcelable {
             return false;
         }
         if (packageFlagStorage != o.packageFlagStorage) {
+            return false;
+        }
+        if (!Arrays.equals(micSpoofingConfig, o.micSpoofingConfig)) {
             return false;
         }
         return true;
@@ -236,6 +244,7 @@ public final class GosPackageState implements Parcelable {
         private long packageFlagStorage;
         private byte[] storageScopes;
         private byte[] contactScopes;
+        private byte[] micSpoofingConfig;
         private int editorFlags;
 
         /** @hide */
@@ -246,6 +255,7 @@ public final class GosPackageState implements Parcelable {
             this.packageFlagStorage = s.packageFlagStorage;
             this.storageScopes = s.storageScopes;
             this.contactScopes = s.contactScopes;
+            this.micSpoofingConfig = s.micSpoofingConfig;
         }
 
         @NonNull
@@ -305,6 +315,12 @@ public final class GosPackageState implements Parcelable {
         }
 
         @NonNull
+        public Editor setMicSpoofingConfig(@Nullable byte[] micSpoofingConfig) {
+            this.micSpoofingConfig = micSpoofingConfig;
+            return this;
+        }
+
+        @NonNull
         public Editor killUidAfterApply() {
             return setKillUidAfterApply(true);
         }
@@ -334,7 +350,7 @@ public final class GosPackageState implements Parcelable {
         public boolean apply() {
             try {
                 return ActivityThread.getPackageManager().setGosPackageState(packageName, userId,
-                        new GosPackageState(flagStorage1, packageFlagStorage, storageScopes, contactScopes),
+                        new GosPackageState(flagStorage1, packageFlagStorage, storageScopes, contactScopes, micSpoofingConfig),
                         editorFlags);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();

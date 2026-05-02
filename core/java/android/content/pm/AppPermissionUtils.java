@@ -19,6 +19,7 @@ package android.content.pm;
 import android.annotation.NonNull;
 import android.annotation.SystemApi;
 import android.app.compat.gms.GmsCompat;
+import android.content.pm.spoofing.MicSpoofing;
 
 import com.android.internal.app.ContactScopes;
 import com.android.internal.app.StorageScopesAppHooks;
@@ -53,6 +54,10 @@ public class AppPermissionUtils {
             }
         }
 
+        if (MicSpoofing.shouldSpoofSelfPermissionCheck(permName)) {
+            return true;
+        }
+
         return false;
     }
 
@@ -67,6 +72,10 @@ public class AppPermissionUtils {
         }
 
         if (ContactScopes.shouldSpoofSelfAppOpCheck(op)) {
+            return true;
+        }
+
+        if (MicSpoofing.shouldSpoofSelfAppOpCheck(op)) {
             return true;
         }
 
@@ -103,6 +112,13 @@ public class AppPermissionUtils {
 
         if (ps.hasFlag(GosPackageStateFlag.CONTACT_SCOPES_ENABLED)) {
             int permDflag = ContactScopes.getSpoofablePermissionDflag(perm);
+            if (permDflag != 0) {
+                return permDflag;
+            }
+        }
+
+        if (ps.hasFlag(GosPackageStateFlag.MIC_SPOOFING_ENABLED)) {
+            int permDflag = MicSpoofing.getSpoofablePermissionDflag(perm);
             if (permDflag != 0) {
                 return permDflag;
             }

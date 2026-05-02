@@ -93,6 +93,8 @@ cc_library_shared {
         "libmediadrm",
         "libmediadrmmetrics_consumer",
         "libmediametrics",
+        "libmicspoofing",
+        "libmicspoofing_decoder",
         "libmtp",
         "libnativehelper",
         "libnativewindow",

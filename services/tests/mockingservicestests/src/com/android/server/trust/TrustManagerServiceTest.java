@@ -30,6 +30,7 @@ import static com.android.dx.mockito.inline.extended.ExtendedMockito.eq;
 import static com.android.dx.mockito.inline.extended.ExtendedMockito.mock;
 import static com.android.dx.mockito.inline.extended.ExtendedMockito.verify;
 import static com.android.dx.mockito.inline.extended.ExtendedMockito.when;
+import static com.android.internal.widget.LockDomain.Primary;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_NOT_REQUIRED;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_REQUIRED_AFTER_USER_LOCKDOWN;
 
@@ -673,7 +674,7 @@ public class TrustManagerServiceTest {
                     ArgumentCaptor.forClass(LockSettingsStateListener.class);
             verify(mLockSettingsInternal).registerLockSettingsStateListener(captor.capture());
             LockSettingsStateListener listener = captor.getValue();
-            listener.onAuthenticationSucceeded(userId);
+            listener.onAuthenticationSucceeded(userId, Primary);
         } else {
             mTrustManager.reportUnlockAttempt(/* successful= */ true, userId);
         }
@@ -685,7 +686,7 @@ public class TrustManagerServiceTest {
                     ArgumentCaptor.forClass(LockSettingsStateListener.class);
             verify(mLockSettingsInternal).registerLockSettingsStateListener(captor.capture());
             LockSettingsStateListener listener = captor.getValue();
-            listener.onAuthenticationFailed(userId);
+            listener.onAuthenticationFailed(userId, Primary);
         } else {
             mTrustManager.reportUnlockAttempt(/* successful= */ false, userId);
         }

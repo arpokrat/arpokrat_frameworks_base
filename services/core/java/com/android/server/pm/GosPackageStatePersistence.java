@@ -21,6 +21,7 @@ class GosPackageStatePersistence {
     private static final String ATTR_PACKAGE_FLAG_STORAGE = "package-flags";
     private static final String ATTR_STORAGE_SCOPES = "storage-scopes";
     private static final String ATTR_CONTACT_SCOPES = "contact-scopes";
+    private static final String ATTR_MIC_SPOOFING_CONFIG = "mic-spoofing-config";
 
     /** @see Settings#writePackageRestrictions */
     static void serialize(PackageUserStateInternal packageUserState, TypedXmlSerializer serializer) throws IOException {
@@ -50,6 +51,12 @@ class GosPackageStatePersistence {
                 serializer.attributeBytesHex(null, ATTR_CONTACT_SCOPES, s);
             }
         }
+        if (ps.hasFlag(GosPackageStateFlag.MIC_SPOOFING_ENABLED)) {
+            byte[] s = ps.micSpoofingConfig;
+            if (s != null) {
+                serializer.attributeBytesHex(null, ATTR_MIC_SPOOFING_CONFIG, s);
+            }
+        }
         long packageFlagStorage = ps.packageFlagStorage;
         if (packageFlagStorage != 0L) {
             serializer.attributeLong(null, ATTR_PACKAGE_FLAG_STORAGE, ps.packageFlagStorage);
@@ -61,6 +68,7 @@ class GosPackageStatePersistence {
         long packageFlagStorage = 0L;
         byte[] storageScopes = null;
         byte[] contactScopes = null;
+        byte[] micSpoofingConfig = null;
 
         for (int i = 0, numAttr = parser.getAttributeCount(); i < numAttr; ++i) {
             String attr = parser.getAttributeName(i);
@@ -73,11 +81,13 @@ class GosPackageStatePersistence {
                     storageScopes = parser.getAttributeBytesHex(i);
                 case ATTR_CONTACT_SCOPES ->
                     contactScopes = parser.getAttributeBytesHex(i);
+                case ATTR_MIC_SPOOFING_CONFIG ->
+                    micSpoofingConfig = parser.getAttributeBytesHex(i);
                 default ->
                     Slog.e(TAG, "deserialize: unknown attribute " + attr);
             }
         }
-        return new GosPackageState(flagStorage1, packageFlagStorage, storageScopes, contactScopes);
+        return new GosPackageState(flagStorage1, packageFlagStorage, storageScopes, contactScopes, micSpoofingConfig);
     }
 
     // Compatibility with legacy serialized GosPackageState.
@@ -91,7 +101,7 @@ class GosPackageStatePersistence {
         long packageFlagStorage = parser.getAttributeLong(null, "GrapheneOS-package-flags", 0L);
         byte[] storageScopes = parser.getAttributeBytesHex(null, "GrapheneOS-storage-scopes", null);
         byte[] contactScopes = parser.getAttributeBytesHex(null, "GrapheneOS-contact-scopes", null);
-        return new GosPackageState(flagStorage1, packageFlagStorage, storageScopes, contactScopes);
+        return new GosPackageState(flagStorage1, packageFlagStorage, storageScopes, contactScopes, null);
     }
 
     private static long migrateLegacyFlags(int flags) {

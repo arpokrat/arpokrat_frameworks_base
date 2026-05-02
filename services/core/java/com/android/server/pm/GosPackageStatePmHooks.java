@@ -173,7 +173,11 @@ public class GosPackageStatePmHooks {
             return;
         }
 
-        if (!gosPs.hasFlag(GosPackageStateFlag.STORAGE_SCOPES_ENABLED) && !gosPs.hasFlag(GosPackageStateFlag.CONTACT_SCOPES_ENABLED)) {
+        boolean hasStorageScopesEnabledFlag = gosPs.hasFlag(GosPackageStateFlag.STORAGE_SCOPES_ENABLED);
+        boolean hasContactScopesEnabledFlag = gosPs.hasFlag(GosPackageStateFlag.CONTACT_SCOPES_ENABLED);
+        boolean hasMicSpoofingEnabledFlag = gosPs.hasFlag(GosPackageStateFlag.MIC_SPOOFING_ENABLED);
+
+        if (!hasStorageScopesEnabledFlag && !hasContactScopesEnabledFlag && !hasMicSpoofingEnabledFlag) {
             return;
         }
 
@@ -276,6 +280,10 @@ public class GosPackageStatePmHooks {
                 case Manifest.permission.GET_ACCOUNTS:
                     flags |= DerivedPackageFlag.HAS_GET_ACCOUNTS_DECLARATION;
                     continue;
+
+                case Manifest.permission.RECORD_AUDIO:
+                    flags |= DerivedPackageFlag.HAS_RECORD_AUDIO_DECLARATION;
+                    continue;
             }
         }
 
@@ -356,6 +364,8 @@ public class GosPackageStatePmHooks {
                     ed.setStorageScopes(getByteArrArg(cmd));
                 case "set-contact-scopes" ->
                     ed.setContactScopes(getByteArrArg(cmd));
+                case "set-mic-spoofing-config" ->
+                    ed.setMicSpoofingConfig(getByteArrArg(cmd));
                 case "set-kill-uid-after-apply" ->
                     ed.setKillUidAfterApply(Boolean.parseBoolean(cmd.getNextArgRequired()));
                 case "set-notify-uid-after-apply" ->

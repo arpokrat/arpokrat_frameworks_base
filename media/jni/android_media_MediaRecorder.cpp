@@ -31,6 +31,8 @@
 #include <media/mediarecorder.h>
 #include <media/MediaMetricsItem.h>
 #include <media/stagefright/PersistentSurface.h>
+#include <mic_spoofing.h>
+#include <mic_spoofing_decoder.h>
 #include <utils/threads.h>
 
 #include <nativehelper/ScopedUtfChars.h>
@@ -522,6 +524,24 @@ android_media_MediaRecorder_start(JNIEnv *env, jobject thiz)
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
         return;
     }
+
+    const int32_t uid = static_cast<int32_t>(getuid());
+    if (mic_spoofing_is_enabled_for_uid(uid)) {
+        uint32_t sampleRate = 0;
+        uint32_t channelCount = 0;
+        const int pipeFd = mic_spoofing_start_streaming_decoder(uid, &sampleRate,
+                &channelCount);
+        if (pipeFd >= 0) {
+            const status_t err = mr->setMicSpoofingSourceFd(pipeFd, sampleRate, channelCount);
+            close(pipeFd);
+            if (err != OK) {
+                ALOGW("setMicSpoofingSourceFd failed: %d", err);
+            }
+        } else {
+            ALOGW("mic_spoofing_start_streaming_decoder failed for uid %" PRId32, uid);
+        }
+    }
+
     process_media_recorder_call(env, mr->start(), "java/lang/RuntimeException", "start failed.");
 }
 
@@ -917,6 +937,14 @@ static const JNINativeMethod gMethods[] = {
 // JNI_OnLoad in android_media_MediaPlayer.cpp
 int register_android_media_MediaRecorder(JNIEnv *env)
 {
-    return AndroidRuntime::registerNativeMethods(env,
-                "android/media/MediaRecorder", gMethods, NELEM(gMethods));
+    int result = AndroidRuntime::registerNativeMethods(
+            env, "android/media/MediaRecorder", gMethods, NELEM(gMethods));
+    if (result != 0) {
+        return result;
+    }
+
+    // Register the app-process decoder factory once for MediaRecorder
+    // Mediaserver never loads libmedia_jni, so it remains fail-closed to silence
+    mic_spoofing_set_decoder_factory(&mic_spoofing_decoder_start);
+    return result;
 }

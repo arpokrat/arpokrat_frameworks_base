@@ -4366,6 +4366,7 @@ package android.content.pm {
     method public void writeToParcel(@NonNull android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.content.pm.GosPackageState> CREATOR;
     field @Nullable public final byte[] contactScopes;
+    field @Nullable public final byte[] micSpoofingConfig;
     field @Nullable public final byte[] storageScopes;
   }
 
@@ -4379,6 +4380,7 @@ package android.content.pm {
     method @NonNull public android.content.pm.GosPackageState.Editor setContactScopes(@Nullable byte[]);
     method @NonNull public android.content.pm.GosPackageState.Editor setFlagState(int, boolean);
     method @NonNull public android.content.pm.GosPackageState.Editor setKillUidAfterApply(boolean);
+    method @NonNull public android.content.pm.GosPackageState.Editor setMicSpoofingConfig(@Nullable byte[]);
     method @NonNull public android.content.pm.GosPackageState.Editor setNotifyUidAfterApply(boolean);
     method @NonNull public android.content.pm.GosPackageState.Editor setPackageFlagState(int, boolean);
     method @NonNull public android.content.pm.GosPackageState.Editor setStorageScopes(@Nullable byte[]);
@@ -4386,6 +4388,7 @@ package android.content.pm {
 
   public interface GosPackageStateFlag {
     field public static final int CONTACT_SCOPES_ENABLED = 5; // 0x5
+    field public static final int MIC_SPOOFING_ENABLED = 29; // 0x1d
     field public static final int STORAGE_SCOPES_ENABLED = 0; // 0x0
   }
 
@@ -5276,6 +5279,7 @@ package android.ext {
     field public static final int HAS_READ_MEDIA_IMAGES_DECLARATION = 1024; // 0x400
     field public static final int HAS_READ_MEDIA_VIDEO_DECLARATION = 2048; // 0x800
     field public static final int HAS_READ_MEDIA_VISUAL_USER_SELECTED_DECLARATION = 4096; // 0x1000
+    field public static final int HAS_RECORD_AUDIO_DECLARATION = 8388608; // 0x800000
     field public static final int HAS_WRITE_CONTACTS_DECLARATION = 2097152; // 0x200000
     field public static final int HAS_WRITE_EXTERNAL_STORAGE_DECLARATION = 32; // 0x20
   }
@@ -5388,6 +5392,23 @@ package android.ext.dcl {
   public class DynCodeLoading {
     method public static void checkDexFileOpen(int, @NonNull String) throws java.lang.Exception;
     method public static void checkInMemoryDexFileOpen(int);
+  }
+
+}
+
+package android.ext.micspoofing {
+
+  public final class MicSpoofingApi {
+    method @NonNull public static byte[] buildCustomPathConfig(@NonNull String);
+    method @NonNull public static byte[] buildDefaultConfig();
+    method @NonNull public static android.content.Intent createConfigActivityIntent(@NonNull String);
+    method @Nullable public static String getCustomAudioPathForApp(@NonNull String, int);
+    method @Nullable public static String getPath(@Nullable byte[]);
+    method public static int getSourceMode(@Nullable byte[]);
+    method @Nullable public static android.os.ParcelFileDescriptor openCustomSourceFdForSelf();
+    field public static final int MODE_CUSTOM_PATH = 1; // 0x1
+    field public static final int MODE_DEFAULT = 0; // 0x0
+    field public static final int VERSION = 1; // 0x1
   }
 
 }
