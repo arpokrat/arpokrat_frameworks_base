@@ -1062,4 +1062,6 @@ interface IActivityManager {
     oneway void reportOptimizationInfo(in IBinder app, in String compilerFilter,
             in String compilationReason);
 
+
+    boolean shouldHideCarrierInfoForUid(int targetUid, String apiName);
 }
