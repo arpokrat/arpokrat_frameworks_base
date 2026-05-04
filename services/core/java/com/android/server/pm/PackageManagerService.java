@@ -6779,12 +6779,6 @@ public class PackageManagerService implements PackageSender, TestUtilityService 
             ).doDump(snapshot, fd, pw, args);
         }
 
-        @Nullable
-        @Override
-        public Bundle getExtraAppBindArgs(String packageName) {
-            return PackageManagerHooks.getExtraAppBindArgs(PackageManagerService.this, packageName);
-        }
-
         @Override
         public GosPackageState getGosPackageState(@NonNull String packageName, int userId) {
             int callingUid = Binder.getCallingUid();
