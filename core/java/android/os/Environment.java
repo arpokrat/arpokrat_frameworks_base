@@ -1693,4 +1693,26 @@ public class Environment {
     public static boolean isExecmemBlocked() {
         return com.android.internal.os.SELinuxFlags.isExecmemBlocked();
     }
+
+    private static boolean checkDclAppBindFlag(int flag) {
+        return (android.ext.dcl.DynCodeLoading.getAppBindFlags() & flag) != 0;
+    }
+
+    /** @hide */
+    @UnsupportedAppUsage
+    public static boolean isMemoryDclRestricted() {
+        return checkDclAppBindFlag(android.ext.dcl.DynCodeLoading.RESTRICT_MEMORY_DCL);
+    }
+
+    /** @hide */
+    @UnsupportedAppUsage
+    public static boolean isStorageDclRestricted() {
+        return checkDclAppBindFlag(android.ext.dcl.DynCodeLoading.RESTRICT_STORAGE_DCL);
+    }
+
+    /** @hide */
+    @UnsupportedAppUsage
+    public static boolean isWebViewDclRestricted() {
+        return checkDclAppBindFlag(android.ext.dcl.DynCodeLoading.RESTRICT_WEBVIEW_DCL);
+    }
 }

@@ -58,8 +58,16 @@ public class DynCodeLoading {
         return res;
     }
 
+    private static int appBindFlags;
+
+    /** @hide */
+    public static int getAppBindFlags() {
+        return appBindFlags;
+    }
+
     /** @hide */
     public static void handleAppBindFlags(int flags) {
+        appBindFlags = flags;
         if ((flags & (RESTRICT_MEMORY_DCL | RESTRICT_STORAGE_DCL)) != 0) {
             // RESTRICT_WEBVIEW_DCL is intentionally not included here since it means
             // "restrict DCL for isolated WebView processes" and shouldn't apply inside other app's
