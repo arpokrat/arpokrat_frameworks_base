@@ -11,6 +11,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.GosPackageState;
 import android.ext.settings.app.AswRestrictMemoryDynCodeLoading;
 import android.ext.settings.app.AswRestrictStorageDynCodeLoading;
+import android.ext.settings.app.AswRestrictWebViewDynCodeLoading;
 import android.os.RemoteException;
 import android.system.Os;
 import android.util.Log;
@@ -34,6 +35,8 @@ public class DynCodeLoading {
     public static final int RESTRICT_MEMORY_DCL = 1;
     /** @hide */
     public static final int RESTRICT_STORAGE_DCL = 1 << 1;
+    /** @hide */
+    public static final int RESTRICT_WEBVIEW_DCL = 1 << 2;
 
     /** @hide */
     public static int getAppBindFlags(Context ctx, int userId, ApplicationInfo appInfo,
@@ -48,14 +51,37 @@ public class DynCodeLoading {
             res |= RESTRICT_STORAGE_DCL;
         }
 
+        if (AswRestrictWebViewDynCodeLoading.I.get(ctx, userId, appInfo, gosPs)) {
+            res |= RESTRICT_WEBVIEW_DCL;
+        }
+
         return res;
     }
 
     /** @hide */
     public static void handleAppBindFlags(int flags) {
         if ((flags & (RESTRICT_MEMORY_DCL | RESTRICT_STORAGE_DCL)) != 0) {
+            // RESTRICT_WEBVIEW_DCL is intentionally not included here since it means
+            // "restrict DCL for isolated WebView processes" and shouldn't apply inside other app's
+            // processes. WebView processes are being moved to the new native-only (no ART) isolated
+            // processes in Android 17, which removes the need to block Java DCL there.
             DexFile.enableDynCodeLoadingChecks(flags);
         }
+        var sb = new StringBuilder("AppBindFlags: ");
+        if (flags == 0) {
+            sb.append("0");
+        } else {
+            if ((flags & RESTRICT_MEMORY_DCL) != 0) {
+                sb.append("RESTRICT_MEMORY_DCL, ");
+            }
+            if ((flags & RESTRICT_STORAGE_DCL) != 0) {
+                sb.append("RESTRICT_STORAGE_DCL, ");
+            }
+            if ((flags & RESTRICT_WEBVIEW_DCL) != 0) {
+                sb.append("RESTRICT_WEBVIEW_DCL, ");
+            }
+        }
+        Log.d(TAG, sb.toString());
     }
 
     private static void showNotif(int type, String path, String denialType, Exception e) {

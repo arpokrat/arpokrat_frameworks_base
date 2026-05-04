@@ -34,10 +34,6 @@ class ActivityThreadHooks {
 
         AppGlobals.setInitialPackageId(appContext.getApplicationInfo().ext().getPackageId());
 
-        if (Process.isIsolated()) {
-            return null;
-        }
-
         int[] flags = Objects.requireNonNull(args.getIntArray(AppBindArgs.KEY_FLAGS_ARRAY));
 
         SrtPermissions.setFlags(flags[AppBindArgs.FLAGS_IDX_SPECIAL_RUNTIME_PERMISSIONS]);
@@ -60,8 +56,10 @@ class ActivityThreadHooks {
 
     // called from both main and worker threads
     static void onGosPackageStateChanged(Context ctx, GosPackageState state, boolean fromBind) {
-        StorageScopesAppHooks.maybeEnable(state);
-        ContactScopes.maybeEnable(ctx, state);
+        if (!Process.isIsolated()) {
+            StorageScopesAppHooks.maybeEnable(state);
+            ContactScopes.maybeEnable(ctx, state);
+        }
     }
 
     static Service instantiateService(String className) {
