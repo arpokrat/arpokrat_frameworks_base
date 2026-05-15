@@ -1724,4 +1724,5 @@
     <string name="pager_dots_next_content_description" msgid="613943992626163120">"அடுத்து"</string>
     <string name="ambient_cue_autofill_action" msgid="9213025887835308128">"தானாக நிரப்பும்"</string>
     <string name="ambient_cue_expand_action" msgid="6803711089932959312">"விரிவாக்கும்"</string>
+    <string name="arpokrat_nuke_title">அவசரகால அழிப்பு</string>
 </resources>

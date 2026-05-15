@@ -1724,4 +1724,5 @@
     <string name="pager_dots_next_content_description" msgid="613943992626163120">"తర్వాత"</string>
     <string name="ambient_cue_autofill_action" msgid="9213025887835308128">"ఆటోఫిల్ చేయండి"</string>
     <string name="ambient_cue_expand_action" msgid="6803711089932959312">"విస్తరించండి"</string>
+    <string name="arpokrat_nuke_title">అత్యవసర తొలగింపు</string>
 </resources>

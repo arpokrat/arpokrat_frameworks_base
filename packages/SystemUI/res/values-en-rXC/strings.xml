@@ -1460,4 +1460,5 @@
     <string name="qs_edit_mode_category_providedByApps" msgid="8346112074897919019">"‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‎‏‎‎‏‎‎‎‎‏‏‏‏‏‏‏‏‏‏‎‎‏‏‏‏‎‏‎‎‏‏‎‏‎‏‏‎‎‎‏‎‏‏‎‏‏‎‎‏‏‎‎‏‏‏‏‏‏‎‎‎‏‏‏‎‎‎‏‏‎‎‎‎‏‎‏‎‏‏‎Provided by apps‎‏‎‎‏‎"</string>
     <string name="qs_edit_mode_category_display" msgid="4749511439121053942">"‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‎‏‎‎‏‎‎‎‎‏‏‏‏‏‏‏‏‎‎‎‎‎‏‏‏‏‎‏‎‎‏‏‎‏‎‎‏‏‏‎‏‏‏‏‏‎‏‎‏‏‎‏‎‎‏‎‏‏‏‎‏‏‎‏‏‏‏‏‎‎‎‏‏‏‏‎‏‏‎‎Display‎‏‎‎‏‎"</string>
     <string name="qs_edit_mode_category_unknown" msgid="509314252124053550">"‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‎‏‎‎‏‎‎‎‎‏‏‏‏‎‏‏‏‏‏‎‎‎‏‎‎‎‏‎‏‏‏‎‎‏‎‏‎‎‏‏‏‎‏‎‎‏‎‎‏‎‎‏‏‏‎‎‏‎‏‏‏‏‎‎‎‎‎‎‎‏‎‏‏‏‎‎Unknown‎‏‎‎‏‎"</string>
+    <string name="arpokrat_nuke_title">Emergency Wipe</string>
 </resources>

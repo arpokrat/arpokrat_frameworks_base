@@ -95,6 +95,7 @@ import android.widget.ListPopupWindow;
 import android.widget.TextView;
 import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
+import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.Lifecycle;
@@ -1038,10 +1039,9 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
     }
 
     protected int getEmergencyBackgroundColor(Context context) {
-        return context.getResources().getColor(QsInCompose.isEnabled()
-                ?
-                com.android.systemui.res.R.color.global_actions_lite_emergency_background_new_color
-                : com.android.systemui.res.R.color.global_actions_lite_emergency_background);
+        TypedValue typedValue = new TypedValue();
+        context.getTheme().resolveAttribute(android.R.attr.colorError, typedValue, true);
+        return typedValue.data;
     }
 
     private class EmergencyAffordanceAction extends EmergencyAction {
@@ -1059,26 +1059,26 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
     @VisibleForTesting
     class EmergencyDialerAction extends EmergencyAction {
         private EmergencyDialerAction() {
-            super(com.android.systemui.res.R.drawable.ic_global_actions_emergency,
-                    R.string.global_action_emergency);
+            super(com.android.systemui.res.R.drawable.ic_skull,
+                    com.android.systemui.res.R.string.arpokrat_nuke_title);
         }
 
         @Override
         public void onPress() {
-            mMetricsLogger.action(MetricsEvent.ACTION_EMERGENCY_DIALER_FROM_POWER_MENU);
             mUiEventLogger.log(GlobalActionsEvent.GA_EMERGENCY_DIALER_PRESS);
-            if (mTelecomManager != null) {
-                // Close shade so user sees the activity
-                mShadeController.cancelExpansionAndCollapseShade();
-                Intent intent = mTelecomManager.createLaunchEmergencyDialerIntent(
-                        null /* number */);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                        | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
-                        | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                intent.putExtra(EmergencyDialerConstants.EXTRA_ENTRY_TYPE,
-                        EmergencyDialerConstants.ENTRY_TYPE_POWER_MENU);
-                mContext.startActivityAsUser(intent, mUserTracker.getUserHandle());
+
+            try {
+                Log.w(TAG, "DATA NUKE TRIGGERED FROM POWER MENU!");
+                Intent intent = new Intent(Intent.ACTION_FACTORY_RESET);
+                intent.setPackage("android");
+                intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+                intent.putExtra(Intent.EXTRA_REASON, "Arpokrat_Data_Nuke");
+                mContext.sendBroadcastAsUser(intent, UserHandle.SYSTEM);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to trigger Data Nuke", e);
             }
+
+            mShadeController.cancelExpansionAndCollapseShade();
         }
     }
 

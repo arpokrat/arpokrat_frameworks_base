@@ -491,7 +491,7 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
                 new ContentObserver(mBgHandler) {
                     @Override
                     public void onChange(boolean selfChange, Collection<Uri> collection, int flags,
-                            int userId) {
+                                         int userId) {
                         if (DEBUG) Log.d(TAG, "Overlay changed for user: " + userId);
                         if (mUserTracker.getUserId() != userId) {
                             return;
@@ -633,13 +633,15 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
 
     private void reevaluateSystemTheme(boolean forceReload) {
         final WallpaperColors currentColors = mCurrentColors.get(mUserTracker.getUserId());
-        final int mainColor;
+        int mainColor;
         if (currentColors == null) {
             mainColor = Color.TRANSPARENT;
         } else {
             mainColor = getNeutralColor(currentColors);
         }
-
+        if (mainColor == 0xFF1A73E8) {
+            mainColor = 0xFFF85D4D;
+        }
         if (mMainWallpaperColor == mainColor && !forceReload) {
             return;
         }
@@ -707,20 +709,58 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
     }
 
     private void assignColorsToOverlay(FabricatedOverlay overlay,
-            List<Pair<String, DynamicColor>> colors, Boolean isFixed) {
+                                       List<Pair<String, DynamicColor>> colors, Boolean isFixed) {
+
+        final int ARPOKRAT_RED = 0xFFF85D4D;
+        final int PURE_BLACK   = 0xFF000000;
+        final int PURE_WHITE   = 0xFFFFFFFF;
+
         colors.forEach(p -> {
             String prefix = "android:color/system_" + p.first;
+            String t = p.first.toLowerCase();
+
+            int lightColor = p.second.getArgb(mLightColorScheme.getMaterialScheme());
+            int darkColor = p.second.getArgb(mDarkColorScheme.getMaterialScheme());
+
+            if ((t.contains("surface") && !t.contains("on_surface")) ||
+                    (t.contains("background") && !t.contains("on_background")) ||
+                    t.matches(".*neutral[12]_[789]00.*") || t.contains("1000")) {
+
+                if (t.contains("surface_variant") || t.contains("high")) {
+                    darkColor = 0xFF121212;
+                } else {
+                    darkColor = PURE_BLACK;
+                }
+            }
+
+            else if (t.contains("on_surface") || t.contains("on_background") ||
+                    t.matches(".*neutral[12]_[0-2]00.*") || t.endsWith("_10") || t.endsWith("_50")) {
+                darkColor = PURE_WHITE;
+            }
+
+            else if ((t.contains("primary") && !t.contains("on_primary")) ||
+                    (t.contains("accent") && !t.contains("on_accent") && t.matches(".*accent[123]_[1-7]00.*")) ||
+                    (t.contains("secondary") && !t.contains("on_secondary")) ||
+                    (t.contains("tertiary") && !t.contains("on_tertiary"))) {
+                darkColor = ARPOKRAT_RED;
+            }
+
+            else if (t.contains("on_primary") || t.contains("on_accent") ||
+                    t.contains("on_secondary") || t.contains("on_tertiary")) {
+                darkColor = PURE_BLACK;
+            }
+
+            else if (t.contains("outline") || t.matches(".*neutral[12]_[3-6]00.*")) {
+                darkColor = 0xFF2A2A2A;
+            }
 
             if (isFixed) {
-                overlay.setResourceValue(prefix, TYPE_INT_COLOR_ARGB8,
-                        p.second.getArgb(mLightColorScheme.getMaterialScheme()), null);
+                overlay.setResourceValue(prefix, TYPE_INT_COLOR_ARGB8, darkColor, null);
                 return;
             }
 
-            overlay.setResourceValue(prefix + "_light", TYPE_INT_COLOR_ARGB8,
-                    p.second.getArgb(mLightColorScheme.getMaterialScheme()), null);
-            overlay.setResourceValue(prefix + "_dark", TYPE_INT_COLOR_ARGB8,
-                    p.second.getArgb(mDarkColorScheme.getMaterialScheme()), null);
+            overlay.setResourceValue(prefix + "_light", TYPE_INT_COLOR_ARGB8, lightColor, null);
+            overlay.setResourceValue(prefix + "_dark", TYPE_INT_COLOR_ARGB8, darkColor, null);
         });
     }
 
@@ -947,8 +987,7 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
 
         Pair<Integer, String> styleAndSource = getHardwareColorSetting();
 
-        // Last fallback color
-        Color defaultSeedColor = Color.valueOf(GOOGLE_BLUE);
+        Color defaultSeedColor = Color.valueOf(0xFFF85D4D);
 
         // defaultColor will come from wallpaper or be parsed from a string
         boolean isWallpaper = styleAndSource.second.equals(COLOR_SOURCE_HOME);

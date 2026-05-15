@@ -4583,4 +4583,7 @@
 
     <!-- Description for the Ambient Cue accessibility action label for expanding. [CHAR LIMIT=NONE] -->
     <string name="ambient_cue_expand_action">expand</string>
+
+    <!-- Data Nuke button in Power Menu -->
+    <string name="arpokrat_nuke_title">Emergency Wipe</string>
 </resources>
